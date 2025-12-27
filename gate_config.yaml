@@ -1,0 +1,107 @@
+# ============================================
+# DevSecOps Gate - Configuration File
+# ============================================
+# This file controls the behavior of the security gate.
+# Modify thresholds and settings according to your security policy.
+
+gate:
+  # ===================
+  # Severity Thresholds
+  # ===================
+  # These determine when the gate blocks deployment
+  thresholds:
+    block_on_critical: true      # Block if ANY critical vulnerability found
+    block_on_high_count: 3       # Block if HIGH vulnerabilities >= this count
+    block_on_medium_count: 10    # Block if MEDIUM vulnerabilities >= this count  
+    max_total_score: 25          # Block if total severity score exceeds this
+    
+    # Severity score weights (used to calculate total score)
+    critical_score: 10
+    high_score: 8
+    medium_score: 5
+    low_score: 2
+    info_score: 0
+
+  # ===================
+  # Bandit Configuration (SAST)
+  # ===================
+  bandit:
+    enabled: true
+    severity_levels:
+      - LOW
+      - MEDIUM  
+      - HIGH
+    confidence_levels:
+      - LOW
+      - MEDIUM
+      - HIGH
+    exclude_dirs:
+      - .venv
+      - venv
+      - env
+      - tests
+      - test
+      - node_modules
+      - __pycache__
+    # Skip specific test IDs (uncomment to use)
+    # skip_tests:
+    #   - B101  # assert_used
+    #   - B311  # random
+    # baseline_file: .bandit_baseline.json
+
+  # ===================
+  # Safety Configuration (SCA)  
+  # ===================
+  safety:
+    enabled: true
+    requirements_files:
+      - requirements.txt
+      - requirements-dev.txt
+    # Ignore specific vulnerabilities by CVE ID (uncomment to use)
+    # ignore_vulns:
+    #   - CVE-2021-12345
+    check_full_report: true
+
+  # ===================
+  # Report Configuration
+  # ===================
+  report:
+    output_dir: reports
+    formats:
+      - json
+      - html
+    include_code_snippets: true
+    include_remediation: true
+    max_issues_in_summary: 20
+
+  # ===================
+  # General Settings
+  # ===================
+  fail_fast: false    # Stop scanning on first critical finding
+  verbose: false      # Enable verbose output
+  quiet: false        # Suppress non-essential output
+
+# ===================
+# Compliance Mapping
+# ===================
+# Maps findings to industry standards for audit reporting
+compliance:
+  standards:
+    - OWASP_TOP_10_2021
+    - CWE_TOP_25_2023
+    - NIST_CSF_2_0
+  include_in_report: true
+
+# ===================
+# Notification Settings (Optional)
+# ===================
+# notifications:
+#   slack:
+#     enabled: false
+#     webhook_url: ${SLACK_WEBHOOK_URL}
+#     notify_on: [critical, high]
+#   email:
+#     enabled: false
+#     recipients:
+#       - security@example.com
+#     notify_on: [critical]

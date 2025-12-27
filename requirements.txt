@@ -1,0 +1,51 @@
+# ============================================
+# DevSecOps Gate - Dependencies
+# Mini Audit Tools 2025
+# ============================================
+
+# ===================
+# Core Security Tools
+# ===================
+bandit>=1.7.5                  # Static Application Security Testing (SAST)
+safety>=2.3.5                  # Dependency vulnerability checking (SCA)
+
+# ===================
+# CLI & Configuration
+# ===================
+click>=8.1.7                   # CLI framework
+pyyaml>=6.0.1                  # YAML configuration parsing
+python-dotenv>=1.0.0           # Environment variables
+
+# ===================
+# Dashboard (Streamlit)
+# ===================
+streamlit>=1.28.0              # Web dashboard framework
+plotly>=5.18.0                 # Interactive charts
+pandas>=2.0.3                  # Data manipulation
+altair>=5.1.0                  # Declarative visualization
+
+# ===================
+# Reporting
+# ===================
+jinja2>=3.1.2                  # Template engine for reports
+markdown>=3.5.1                # Markdown processing
+reportlab>=4.0.7               # PDF generation
+tabulate>=0.9.0                # Table formatting
+
+# ===================
+# Development & Testing
+# ===================
+pytest>=7.4.3                  # Testing framework
+pytest-cov>=4.1.0              # Coverage reporting
+black>=23.11.0                 # Code formatter
+flake8>=6.1.0                  # Linting
+isort>=5.12.0                  # Import sorting
+mypy>=1.7.0                    # Type checking
+
+# ===================
+# Utilities
+# ===================
+rich>=13.7.0                   # Beautiful terminal output
+colorama>=0.4.6                # Cross-platform colored terminal
+gitpython>=3.1.40              # Git operations
+requests>=2.31.0               # HTTP client

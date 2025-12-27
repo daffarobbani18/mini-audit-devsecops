@@ -1,0 +1,99 @@
+{
+  "audit_id": "AUDIT-8DDF8C9C",
+  "audit_timestamp": "2025-12-27T14:25:06.465626",
+  "target_path": "D:\\Website\\mini-audit-devsecops\\tests\\sample_vulnerable_code.py",
+  "gate_decision": "PASSED",
+  "gate_reason": "No security vulnerabilities found",
+  "total_score": 0,
+  "summary": {
+    "audit_id": "AUDIT-8DDF8C9C",
+    "timestamp": "2025-12-27T14:25:06.465626",
+    "gate_decision": "PASSED",
+    "gate_reason": "No security vulnerabilities found",
+    "total_score": 0,
+    "findings": {
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    },
+    "scanners": [
+      "bandit",
+      "safety"
+    ]
+  },
+  "scan_results": [
+    {
+      "scanner_name": "bandit",
+      "scan_timestamp": "2025-12-27T14:25:06.465750",
+      "target_path": "tests\\sample_vulnerable_code.py",
+      "vulnerabilities": [],
+      "scan_duration": 0.750402,
+      "success": true,
+      "error_message": null,
+      "summary": {
+        "total": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      }
+    },
+    {
+      "scanner_name": "safety",
+      "scan_timestamp": "2025-12-27T14:25:07.216187",
+      "target_path": "tests\\sample_vulnerable_code.py",
+      "vulnerabilities": [],
+      "scan_duration": 6.141794,
+      "success": false,
+      "error_message": "Error scanning tests\\sample_vulnerable_code.py: Safety scan failed: 'str' object has no attribute 'get'",
+      "summary": {
+        "total": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      }
+    }
+  ],
+  "git_commit": "913f1df2cc47cb423b81bda1241c040284d91a4a",
+  "git_branch": "main",
+  "config_used": {
+    "gate": {
+      "thresholds": {
+        "block_on_critical": true,
+        "block_on_high_count": 3,
+        "block_on_medium_count": 10,
+        "max_total_score": 25
+      },
+      "bandit": {
+        "enabled": true,
+        "exclude_dirs": [
+          ".venv",
+          "venv",
+          "env",
+          "tests",
+          "test",
+          "node_modules",
+          "__pycache__"
+        ],
+        "skip_tests": []
+      },
+      "safety": {
+        "enabled": true,
+        "requirements_files": [
+          "requirements.txt",
+          "requirements-dev.txt"
+        ]
+      },
+      "report": {
+        "output_dir": "reports",
+        "formats": [
+          "json",
+          "html"
+        ]
+      }
+    }
+  }
+}
