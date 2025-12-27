@@ -78,6 +78,37 @@ gate:
   # General Settings
   # ===================
   fail_fast: false    # Stop scanning on first critical finding
+
+  # ===================
+  # CI/CD Settings
+  # ===================
+  ci:
+    enabled: true
+    # CI-specific thresholds (can override main thresholds)
+    strict_mode: false    # When true, treat warnings as failures
+    
+    # GitHub Actions specific
+    github:
+      create_pr_comment: true
+      upload_sarif: true
+      create_issues_for_critical: true
+      
+    # GitLab CI specific  
+    gitlab:
+      create_mr_comment: true
+      create_issues_for_critical: true
+      
+    # Notifications
+    notifications:
+      slack_webhook: ""       # Optional: Slack webhook URL
+      teams_webhook: ""       # Optional: MS Teams webhook URL
+      email_recipients: []    # Optional: Email list for alerts
+      
+    # Branch protection rules recommendation
+    branch_protection:
+      require_security_gate: true
+      allowed_to_merge_on_warning: true
+      require_code_review: true
   verbose: false      # Enable verbose output
   quiet: false        # Suppress non-essential output
 

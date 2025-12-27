@@ -1,0 +1,217 @@
+# =============================================================================
+# DevSecOps Security Gate - GitLab CI Configuration
+# =============================================================================
+# This pipeline runs security scans on every commit and merge request.
+# Compatible with GitLab CI/CD.
+#
+# To use: Copy this file to your repository as .gitlab-ci.yml
+# =============================================================================
+
+stages:
+  - security
+  - report
+
+variables:
+  PYTHON_VERSION: "3.11"
+  REPORTS_DIR: "reports"
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+# Cache pip packages between jobs
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .cache/pip
+    - .venv
+
+# =============================================================================
+# Security Scan Job
+# =============================================================================
+security-scan:
+  stage: security
+  image: python:${PYTHON_VERSION}
+  
+  before_script:
+    - echo "🛡️ DevSecOps Security Gate - GitLab CI"
+    - python -m pip install --upgrade pip
+    - pip install -r requirements.txt
+    - echo "=== Scanner Versions ==="
+    - bandit --version
+    - safety --version
+    
+  script:
+    - mkdir -p ${REPORTS_DIR}
+    - |
+      echo "🔍 Running security audit..."
+      python scripts/ci_runner.py \
+        --target . \
+        --output ${REPORTS_DIR} \
+        --format json html \
+        --ci-mode || SCAN_EXIT_CODE=$?
+        
+      # Parse results for GitLab
+      if [ -f "${REPORTS_DIR}/audit_summary.json" ]; then
+        echo "📊 Audit Results:"
+        cat ${REPORTS_DIR}/audit_summary.json | python -m json.tool
+      fi
+      
+      exit ${SCAN_EXIT_CODE:-0}
+      
+  artifacts:
+    when: always
+    paths:
+      - ${REPORTS_DIR}/*.json
+      - ${REPORTS_DIR}/*.html
+    reports:
+      # GitLab Security Dashboard integration
+      sast: ${REPORTS_DIR}/gl-sast-report.json
+    expire_in: 30 days
+    
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH == "develop"
+
+# =============================================================================
+# Convert to GitLab SAST Format
+# =============================================================================
+convert-report:
+  stage: report
+  image: python:${PYTHON_VERSION}
+  needs:
+    - job: security-scan
+      artifacts: true
+      
+  script:
+    - |
+      # Convert our JSON to GitLab SAST format
+      python << 'EOF'
+      import json
+      import sys
+      from pathlib import Path
+
+      reports_dir = Path("${REPORTS_DIR}")
+      audit_file = reports_dir / "audit_summary.json"
+      
+      if not audit_file.exists():
+          print("No audit results found")
+          sys.exit(0)
+          
+      with open(audit_file) as f:
+          audit = json.load(f)
+          
+      # GitLab SAST format
+      gl_report = {
+          "version": "15.0.0",
+          "scan": {
+              "scanner": {
+                  "id": "devsecops-gate",
+                  "name": "DevSecOps Security Gate",
+                  "vendor": {"name": "Mini Audit Tools"},
+                  "version": "1.0.0"
+              },
+              "type": "sast",
+              "status": "success",
+              "start_time": audit.get("timestamp"),
+              "end_time": audit.get("timestamp")
+          },
+          "vulnerabilities": []
+      }
+      
+      # Note: Full vulnerability conversion would go here
+      # This is a simplified version
+      
+      output_file = reports_dir / "gl-sast-report.json"
+      with open(output_file, "w") as f:
+          json.dump(gl_report, f, indent=2)
+          
+      print(f"GitLab SAST report saved to {output_file}")
+      EOF
+      
+  artifacts:
+    when: always
+    paths:
+      - ${REPORTS_DIR}/gl-sast-report.json
+    reports:
+      sast: ${REPORTS_DIR}/gl-sast-report.json
+    expire_in: 30 days
+    
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# =============================================================================
+# Scheduled Weekly Scan
+# =============================================================================
+scheduled-security-scan:
+  stage: security
+  image: python:${PYTHON_VERSION}
+  
+  before_script:
+    - python -m pip install --upgrade pip
+    - pip install -r requirements.txt
+    
+  script:
+    - mkdir -p ${REPORTS_DIR}
+    - |
+      python scripts/ci_runner.py \
+        --target . \
+        --output ${REPORTS_DIR} \
+        --format json html \
+        --ci-mode \
+        --full-scan || true
+        
+      # Check for critical findings
+      if [ -f "${REPORTS_DIR}/audit_summary.json" ]; then
+        CRITICAL=$(cat ${REPORTS_DIR}/audit_summary.json | python -c "import sys,json; print(json.load(sys.stdin)['findings']['critical'])")
+        if [ "$CRITICAL" -gt "0" ]; then
+          echo "🚨 Critical vulnerabilities found!"
+        fi
+      fi
+      
+  artifacts:
+    when: always
+    paths:
+      - ${REPORTS_DIR}/*.json
+      - ${REPORTS_DIR}/*.html
+    expire_in: 90 days
+    
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+
+# =============================================================================
+# Merge Request Comment (Optional - requires API token)
+# =============================================================================
+mr-comment:
+  stage: report
+  image: curlimages/curl:latest
+  needs:
+    - job: security-scan
+      artifacts: true
+      
+  script:
+    - |
+      if [ -z "$GITLAB_API_TOKEN" ]; then
+        echo "GITLAB_API_TOKEN not set, skipping MR comment"
+        exit 0
+      fi
+      
+      # Read results
+      if [ -f "${REPORTS_DIR}/audit_summary.json" ]; then
+        DECISION=$(cat ${REPORTS_DIR}/audit_summary.json | grep -o '"gate_decision": "[^"]*"' | cut -d'"' -f4)
+        CRITICAL=$(cat ${REPORTS_DIR}/audit_summary.json | grep -o '"critical": [0-9]*' | grep -o '[0-9]*')
+        HIGH=$(cat ${REPORTS_DIR}/audit_summary.json | grep -o '"high": [0-9]*' | grep -o '[0-9]*')
+        
+        # Create comment body
+        COMMENT="## 🛡️ Security Audit Report\n\n**Gate Decision:** ${DECISION}\n\n| Severity | Count |\n|----------|-------|\n| Critical | ${CRITICAL} |\n| High | ${HIGH} |\n\n[View Full Report](${CI_JOB_URL})"
+        
+        # Post comment to MR
+        curl --request POST \
+          --header "PRIVATE-TOKEN: ${GITLAB_API_TOKEN}" \
+          --header "Content-Type: application/json" \
+          --data "{\"body\": \"${COMMENT}\"}" \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${CI_MERGE_REQUEST_IID}/notes"
+      fi
+      
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  allow_failure: true

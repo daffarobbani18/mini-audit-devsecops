@@ -1,0 +1,200 @@
+# =============================================================================
+# DevSecOps Security Gate - Scheduled Audit Workflow
+# =============================================================================
+# Runs comprehensive security scans on a schedule (weekly).
+# Useful for catching newly discovered vulnerabilities in dependencies.
+#
+# Schedule: Every Sunday at 00:00 UTC
+# =============================================================================
+
+name: 📅 Scheduled Security Audit
+
+on:
+  schedule:
+    # Run every Sunday at midnight UTC
+    - cron: '0 0 * * 0'
+    
+  workflow_dispatch:
+    inputs:
+      full_scan:
+        description: 'Run full comprehensive scan'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+env:
+  PYTHON_VERSION: '3.11'
+  REPORTS_DIR: 'reports'
+
+jobs:
+  scheduled-audit:
+    name: 🔍 Weekly Security Scan
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      security-events: write
+      issues: write
+      
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: 🐍 Setup Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          
+      - name: 📦 Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: 🔄 Update Safety Database
+        run: |
+          # Safety will use the latest vulnerability database
+          echo "Checking for latest vulnerability data..."
+          
+      - name: 🛡️ Run Comprehensive Security Audit
+        id: audit
+        run: |
+          mkdir -p ${{ env.REPORTS_DIR }}
+          
+          # Run full audit
+          python scripts/ci_runner.py \
+            --target "." \
+            --output "${{ env.REPORTS_DIR }}" \
+            --format json html \
+            --ci-mode \
+            --full-scan \
+            2>&1 | tee audit_output.log || true
+          
+          # Parse results
+          if [ -f "${{ env.REPORTS_DIR }}/audit_summary.json" ]; then
+            GATE_DECISION=$(jq -r '.gate_decision' ${{ env.REPORTS_DIR }}/audit_summary.json)
+            CRITICAL_COUNT=$(jq -r '.findings.critical' ${{ env.REPORTS_DIR }}/audit_summary.json)
+            HIGH_COUNT=$(jq -r '.findings.high' ${{ env.REPORTS_DIR }}/audit_summary.json)
+            TOTAL=$(jq -r '.findings.total' ${{ env.REPORTS_DIR }}/audit_summary.json)
+          else
+            GATE_DECISION="ERROR"
+            CRITICAL_COUNT="0"
+            HIGH_COUNT="0"
+            TOTAL="0"
+          fi
+          
+          echo "gate_decision=$GATE_DECISION" >> $GITHUB_OUTPUT
+          echo "critical_count=$CRITICAL_COUNT" >> $GITHUB_OUTPUT
+          echo "high_count=$HIGH_COUNT" >> $GITHUB_OUTPUT
+          echo "total_count=$TOTAL" >> $GITHUB_OUTPUT
+          
+      - name: 📊 Upload Weekly Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-security-report-${{ github.run_number }}
+          path: |
+            ${{ env.REPORTS_DIR }}/*.json
+            ${{ env.REPORTS_DIR }}/*.html
+          retention-days: 90  # Keep weekly reports longer
+          
+      - name: 🚨 Create Issue for Critical Findings
+        if: steps.audit.outputs.critical_count > 0 || steps.audit.outputs.high_count > 2
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const critical = '${{ steps.audit.outputs.critical_count }}';
+            const high = '${{ steps.audit.outputs.high_count }}';
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            
+            const title = `🚨 Security Alert: ${critical} Critical, ${high} High vulnerabilities found`;
+            
+            const body = `## Weekly Security Scan Alert
+            
+            The scheduled security scan has detected vulnerabilities that require attention.
+            
+            ### Summary
+            
+            | Severity | Count |
+            |----------|-------|
+            | 🔴 Critical | ${critical} |
+            | 🟠 High | ${high} |
+            
+            ### Action Required
+            
+            1. Review the [full security report](${runUrl})
+            2. Prioritize fixing CRITICAL vulnerabilities immediately
+            3. Plan remediation for HIGH vulnerabilities within 1 week
+            
+            ### Resources
+            
+            - [Security Report Artifact](${runUrl}#artifacts)
+            - [OWASP Remediation Guide](https://owasp.org/www-community/vulnerabilities/)
+            
+            ---
+            *🤖 Automated by DevSecOps Gate - Weekly Scan*
+            *Run ID: ${context.runId}*
+            `;
+            
+            // Check for existing open security issues
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'security,automated'
+            });
+            
+            const existingIssue = issues.find(i => i.title.includes('Security Alert'));
+            
+            if (existingIssue) {
+              // Update existing issue
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssue.number,
+                body: `## 🔄 Updated Scan Results\n\n${body}`
+              });
+            } else {
+              // Create new issue
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['security', 'automated', 'high-priority']
+              });
+            }
+            
+      - name: 📝 Generate Weekly Summary
+        if: always()
+        run: |
+          echo "## 📅 Weekly Security Audit Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Date:** $(date -u +'%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f "${{ env.REPORTS_DIR }}/audit_summary.json" ]; then
+            DECISION=$(jq -r '.gate_decision' ${{ env.REPORTS_DIR }}/audit_summary.json)
+            CRITICAL=$(jq -r '.findings.critical' ${{ env.REPORTS_DIR }}/audit_summary.json)
+            HIGH=$(jq -r '.findings.high' ${{ env.REPORTS_DIR }}/audit_summary.json)
+            MEDIUM=$(jq -r '.findings.medium' ${{ env.REPORTS_DIR }}/audit_summary.json)
+            LOW=$(jq -r '.findings.low' ${{ env.REPORTS_DIR }}/audit_summary.json)
+            
+            echo "### Findings Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔴 Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🟠 High | $HIGH |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🟡 Medium | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🟢 Low | $LOW |" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "$CRITICAL" -gt 0 ]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "🚨 **Action Required:** Critical vulnerabilities detected!" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi

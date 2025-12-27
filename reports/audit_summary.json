@@ -1,0 +1,26 @@
+{
+  "audit_id": "AUDIT-3AA741E8",
+  "timestamp": "2025-12-27T14:33:40.999886",
+  "target": "src",
+  "gate_decision": "FAILED",
+  "gate_reason": "Total severity score 26 exceeds threshold (25)",
+  "total_score": 26,
+  "findings": {
+    "total": 13,
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 13
+  },
+  "scanners": [
+    "bandit",
+    "safety"
+  ],
+  "ci_info": {
+    "ci_platform": "unknown",
+    "commit_sha": null,
+    "branch": null,
+    "pr_number": null,
+    "run_id": null
+  }
+}

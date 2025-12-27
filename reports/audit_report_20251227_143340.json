@@ -1,0 +1,505 @@
+{
+  "audit_id": "AUDIT-3AA741E8",
+  "audit_timestamp": "2025-12-27T14:33:40.999886",
+  "target_path": "D:\\Website\\mini-audit-devsecops\\src",
+  "gate_decision": "FAILED",
+  "gate_reason": "Total severity score 26 exceeds threshold (25)",
+  "total_score": 26,
+  "summary": {
+    "audit_id": "AUDIT-3AA741E8",
+    "timestamp": "2025-12-27T14:33:40.999886",
+    "gate_decision": "FAILED",
+    "gate_reason": "Total severity score 26 exceeds threshold (25)",
+    "total_score": 26,
+    "findings": {
+      "total": 13,
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 13
+    },
+    "scanners": [
+      "bandit",
+      "safety"
+    ]
+  },
+  "scan_results": [
+    {
+      "scanner_name": "bandit",
+      "scan_timestamp": "2025-12-27T14:33:40.999944",
+      "target_path": "src",
+      "vulnerabilities": [
+        {
+          "id": "BANDIT-B404-0000",
+          "title": "Consider possible security implications associated with the subprocess module.",
+          "description": "Consider possible security implications associated with the subprocess module.",
+          "severity": "LOW",
+          "confidence": "HIGH",
+          "scanner": "bandit",
+          "file_path": "src\\gate\\security_gate.py",
+          "line_number": 160,
+          "column_number": 12,
+          "code_snippet": "159         try:\n160             import subprocess\n161             \n",
+          "test_id": "B404",
+          "cwe_id": null,
+          "owasp_id": null,
+          "cve_id": null,
+          "remediation": "https://bandit.readthedocs.io/en/1.9.2/blacklists/blacklist_imports.html#b404-import-subprocess",
+          "references": [
+            "https://bandit.readthedocs.io/en/latest/plugins/b404.html"
+          ],
+          "metadata": {
+            "test_name": "blacklist",
+            "line_range": [
+              160
+            ],
+            "more_info": "https://bandit.readthedocs.io/en/1.9.2/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "id": "BANDIT-B607-0001",
+          "title": "Starting a process with a partial executable path",
+          "description": "Starting a process with a partial executable path",
+          "severity": "LOW",
+          "confidence": "HIGH",
+          "scanner": "bandit",
+          "file_path": "src\\gate\\security_gate.py",
+          "line_number": 166,
+          "column_number": 28,
+          "code_snippet": "165             # Get commit hash\n166             commit_result = subprocess.run(\n167                 [\"git\", \"rev-parse\", \"HEAD\"],\n168                 capture_output=True,\n169                 text=True,\n170                 cwd=cwd,\n171                 timeout=5,\n172             )\n173             commit = commit_result.stdout.strip() if commit_result.returncode == 0 else None\n",
+          "test_id": "B607",
+          "cwe_id": "CWE-78",
+          "owasp_id": "A03:2021",
+          "cve_id": null,
+          "remediation": "https://bandit.readthedocs.io/en/1.9.2/plugins/b607_start_process_with_partial_path.html",
+          "references": [
+            "https://bandit.readthedocs.io/en/latest/plugins/b607.html"
+          ],
+          "metadata": {
+            "test_name": "start_process_with_partial_path",
+            "line_range": [
+              166,
+              167,
+              168,
+              169,
+              170,
+              171,
+              172
+            ],
+            "more_info": "https://bandit.readthedocs.io/en/1.9.2/plugins/b607_start_process_with_partial_path.html"
+          }
+        },
+        {
+          "id": "BANDIT-B603-0002",
+          "title": "subprocess call - check for execution of untrusted input.",
+          "description": "subprocess call - check for execution of untrusted input.",
+          "severity": "LOW",
+          "confidence": "HIGH",
+          "scanner": "bandit",
+          "file_path": "src\\gate\\security_gate.py",
+          "line_number": 166,
+          "column_number": 28,
+          "code_snippet": "165             # Get commit hash\n166             commit_result = subprocess.run(\n167                 [\"git\", \"rev-parse\", \"HEAD\"],\n168                 capture_output=True,\n169                 text=True,\n170                 cwd=cwd,\n171                 timeout=5,\n172             )\n173             commit = commit_result.stdout.strip() if commit_result.returncode == 0 else None\n",
+          "test_id": "B603",
+          "cwe_id": "CWE-78",
+          "owasp_id": "A03:2021",
+          "cve_id": null,
+          "remediation": "https://bandit.readthedocs.io/en/1.9.2/plugins/b603_subprocess_without_shell_equals_true.html",
+          "references": [
+            "https://bandit.readthedocs.io/en/latest/plugins/b603.html"
+          ],
+          "metadata": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "line_range": [
+              166,
+              167,
+              168,
+              169,
+              170,
+              171,
+              172
+            ],
+            "more_info": "https://bandit.readthedocs.io/en/1.9.2/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "id": "BANDIT-B607-0003",
+          "title": "Starting a process with a partial executable path",
+          "description": "Starting a process with a partial executable path",
+          "severity": "LOW",
+          "confidence": "HIGH",
+          "scanner": "bandit",
+          "file_path": "src\\gate\\security_gate.py",
+          "line_number": 176,
+          "column_number": 28,
+          "code_snippet": "175             # Get branch name\n176             branch_result = subprocess.run(\n177                 [\"git\", \"rev-parse\", \"--abbrev-ref\", \"HEAD\"],\n178                 capture_output=True,\n179                 text=True,\n180                 cwd=cwd,\n181                 timeout=5,\n182             )\n183             branch = branch_result.stdout.strip() if branch_result.returncode == 0 else None\n",
+          "test_id": "B607",
+          "cwe_id": "CWE-78",
+          "owasp_id": "A03:2021",
+          "cve_id": null,
+          "remediation": "https://bandit.readthedocs.io/en/1.9.2/plugins/b607_start_process_with_partial_path.html",
+          "references": [
+            "https://bandit.readthedocs.io/en/latest/plugins/b607.html"
+          ],
+          "metadata": {
+            "test_name": "start_process_with_partial_path",
+            "line_range": [
+              176,
+              177,
+              178,
+              179,
+              180,
+              181,
+              182
+            ],
+            "more_info": "https://bandit.readthedocs.io/en/1.9.2/plugins/b607_start_process_with_partial_path.html"
+          }
+        },
+        {
+          "id": "BANDIT-B603-0004",
+          "title": "subprocess call - check for execution of untrusted input.",
+          "description": "subprocess call - check for execution of untrusted input.",
+          "severity": "LOW",
+          "confidence": "HIGH",
+          "scanner": "bandit",
+          "file_path": "src\\gate\\security_gate.py",
+          "line_number": 176,
+          "column_number": 28,
+          "code_snippet": "175             # Get branch name\n176             branch_result = subprocess.run(\n177                 [\"git\", \"rev-parse\", \"--abbrev-ref\", \"HEAD\"],\n178                 capture_output=True,\n179                 text=True,\n180                 cwd=cwd,\n181                 timeout=5,\n182             )\n183             branch = branch_result.stdout.strip() if branch_result.returncode == 0 else None\n",
+          "test_id": "B603",
+          "cwe_id": "CWE-78",
+          "owasp_id": "A03:2021",
+          "cve_id": null,
+          "remediation": "https://bandit.readthedocs.io/en/1.9.2/plugins/b603_subprocess_without_shell_equals_true.html",
+          "references": [
+            "https://bandit.readthedocs.io/en/latest/plugins/b603.html"
+          ],
+          "metadata": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "line_range": [
+              176,
+              177,
+              178,
+              179,
+              180,
+              181,
+              182
+            ],
+            "more_info": "https://bandit.readthedocs.io/en/1.9.2/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "id": "BANDIT-B404-0005",
+          "title": "Consider possible security implications associated with the subprocess module.",
+          "description": "Consider possible security implications associated with the subprocess module.",
+          "severity": "LOW",
+          "confidence": "HIGH",
+          "scanner": "bandit",
+          "file_path": "src\\scanners\\bandit_scanner.py",
+          "line_number": 20,
+          "column_number": 0,
+          "code_snippet": "19 import json\n20 import subprocess\n21 import tempfile\n",
+          "test_id": "B404",
+          "cwe_id": null,
+          "owasp_id": null,
+          "cve_id": null,
+          "remediation": "https://bandit.readthedocs.io/en/1.9.2/blacklists/blacklist_imports.html#b404-import-subprocess",
+          "references": [
+            "https://bandit.readthedocs.io/en/latest/plugins/b404.html"
+          ],
+          "metadata": {
+            "test_name": "blacklist",
+            "line_range": [
+              20
+            ],
+            "more_info": "https://bandit.readthedocs.io/en/1.9.2/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "id": "BANDIT-B603-0006",
+          "title": "subprocess call - check for execution of untrusted input.",
+          "description": "subprocess call - check for execution of untrusted input.",
+          "severity": "LOW",
+          "confidence": "HIGH",
+          "scanner": "bandit",
+          "file_path": "src\\scanners\\bandit_scanner.py",
+          "line_number": 82,
+          "column_number": 21,
+          "code_snippet": "81         try:\n82             result = subprocess.run(\n83                 [self._get_bandit_executable(), \"--version\"],\n84                 capture_output=True,\n85                 text=True,\n86                 timeout=10,\n87             )\n88             if result.returncode == 0:\n",
+          "test_id": "B603",
+          "cwe_id": "CWE-78",
+          "owasp_id": "A03:2021",
+          "cve_id": null,
+          "remediation": "https://bandit.readthedocs.io/en/1.9.2/plugins/b603_subprocess_without_shell_equals_true.html",
+          "references": [
+            "https://bandit.readthedocs.io/en/latest/plugins/b603.html"
+          ],
+          "metadata": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "line_range": [
+              82,
+              83,
+              84,
+              85,
+              86,
+              87
+            ],
+            "more_info": "https://bandit.readthedocs.io/en/1.9.2/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "id": "BANDIT-B603-0007",
+          "title": "subprocess call - check for execution of untrusted input.",
+          "description": "subprocess call - check for execution of untrusted input.",
+          "severity": "LOW",
+          "confidence": "HIGH",
+          "scanner": "bandit",
+          "file_path": "src\\scanners\\bandit_scanner.py",
+          "line_number": 98,
+          "column_number": 21,
+          "code_snippet": "97         try:\n98             result = subprocess.run(\n99                 [self._get_bandit_executable(), \"--version\"],\n100                 capture_output=True,\n101                 text=True,\n102                 timeout=10,\n103             )\n104             return result.returncode == 0\n",
+          "test_id": "B603",
+          "cwe_id": "CWE-78",
+          "owasp_id": "A03:2021",
+          "cve_id": null,
+          "remediation": "https://bandit.readthedocs.io/en/1.9.2/plugins/b603_subprocess_without_shell_equals_true.html",
+          "references": [
+            "https://bandit.readthedocs.io/en/latest/plugins/b603.html"
+          ],
+          "metadata": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "line_range": [
+              98,
+              99,
+              100,
+              101,
+              102,
+              103
+            ],
+            "more_info": "https://bandit.readthedocs.io/en/1.9.2/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "id": "BANDIT-B603-0008",
+          "title": "subprocess call - check for execution of untrusted input.",
+          "description": "subprocess call - check for execution of untrusted input.",
+          "severity": "LOW",
+          "confidence": "HIGH",
+          "scanner": "bandit",
+          "file_path": "src\\scanners\\bandit_scanner.py",
+          "line_number": 146,
+          "column_number": 21,
+          "code_snippet": "145             # Execute Bandit\n146             result = subprocess.run(\n147                 cmd,\n148                 capture_output=True,\n149                 text=True,\n150                 timeout=300,  # 5 minute timeout\n151             )\n152             \n",
+          "test_id": "B603",
+          "cwe_id": "CWE-78",
+          "owasp_id": "A03:2021",
+          "cve_id": null,
+          "remediation": "https://bandit.readthedocs.io/en/1.9.2/plugins/b603_subprocess_without_shell_equals_true.html",
+          "references": [
+            "https://bandit.readthedocs.io/en/latest/plugins/b603.html"
+          ],
+          "metadata": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "line_range": [
+              146,
+              147,
+              148,
+              149,
+              150,
+              151
+            ],
+            "more_info": "https://bandit.readthedocs.io/en/1.9.2/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "id": "BANDIT-B404-0009",
+          "title": "Consider possible security implications associated with the subprocess module.",
+          "description": "Consider possible security implications associated with the subprocess module.",
+          "severity": "LOW",
+          "confidence": "HIGH",
+          "scanner": "bandit",
+          "file_path": "src\\scanners\\safety_scanner.py",
+          "line_number": 17,
+          "column_number": 0,
+          "code_snippet": "16 import json\n17 import subprocess\n18 import uuid\n",
+          "test_id": "B404",
+          "cwe_id": null,
+          "owasp_id": null,
+          "cve_id": null,
+          "remediation": "https://bandit.readthedocs.io/en/1.9.2/blacklists/blacklist_imports.html#b404-import-subprocess",
+          "references": [
+            "https://bandit.readthedocs.io/en/latest/plugins/b404.html"
+          ],
+          "metadata": {
+            "test_name": "blacklist",
+            "line_range": [
+              17
+            ],
+            "more_info": "https://bandit.readthedocs.io/en/1.9.2/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "id": "BANDIT-B603-0010",
+          "title": "subprocess call - check for execution of untrusted input.",
+          "description": "subprocess call - check for execution of untrusted input.",
+          "severity": "LOW",
+          "confidence": "HIGH",
+          "scanner": "bandit",
+          "file_path": "src\\scanners\\safety_scanner.py",
+          "line_number": 77,
+          "column_number": 21,
+          "code_snippet": "76         try:\n77             result = subprocess.run(\n78                 [self._get_safety_executable(), \"--version\"],\n79                 capture_output=True,\n80                 text=True,\n81                 timeout=10,\n82             )\n83             if result.returncode == 0:\n",
+          "test_id": "B603",
+          "cwe_id": "CWE-78",
+          "owasp_id": "A03:2021",
+          "cve_id": null,
+          "remediation": "https://bandit.readthedocs.io/en/1.9.2/plugins/b603_subprocess_without_shell_equals_true.html",
+          "references": [
+            "https://bandit.readthedocs.io/en/latest/plugins/b603.html"
+          ],
+          "metadata": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "line_range": [
+              77,
+              78,
+              79,
+              80,
+              81,
+              82
+            ],
+            "more_info": "https://bandit.readthedocs.io/en/1.9.2/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "id": "BANDIT-B603-0011",
+          "title": "subprocess call - check for execution of untrusted input.",
+          "description": "subprocess call - check for execution of untrusted input.",
+          "severity": "LOW",
+          "confidence": "HIGH",
+          "scanner": "bandit",
+          "file_path": "src\\scanners\\safety_scanner.py",
+          "line_number": 92,
+          "column_number": 21,
+          "code_snippet": "91         try:\n92             result = subprocess.run(\n93                 [self._get_safety_executable(), \"--version\"],\n94                 capture_output=True,\n95                 text=True,\n96                 timeout=10,\n97             )\n98             return result.returncode == 0\n",
+          "test_id": "B603",
+          "cwe_id": "CWE-78",
+          "owasp_id": "A03:2021",
+          "cve_id": null,
+          "remediation": "https://bandit.readthedocs.io/en/1.9.2/plugins/b603_subprocess_without_shell_equals_true.html",
+          "references": [
+            "https://bandit.readthedocs.io/en/latest/plugins/b603.html"
+          ],
+          "metadata": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "line_range": [
+              92,
+              93,
+              94,
+              95,
+              96,
+              97
+            ],
+            "more_info": "https://bandit.readthedocs.io/en/1.9.2/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "id": "BANDIT-B603-0012",
+          "title": "subprocess call - check for execution of untrusted input.",
+          "description": "subprocess call - check for execution of untrusted input.",
+          "severity": "LOW",
+          "confidence": "HIGH",
+          "scanner": "bandit",
+          "file_path": "src\\scanners\\safety_scanner.py",
+          "line_number": 191,
+          "column_number": 21,
+          "code_snippet": "190         try:\n191             result = subprocess.run(\n192                 cmd,\n193                 capture_output=True,\n194                 text=True,\n195                 timeout=120,\n196             )\n197             \n",
+          "test_id": "B603",
+          "cwe_id": "CWE-78",
+          "owasp_id": "A03:2021",
+          "cve_id": null,
+          "remediation": "https://bandit.readthedocs.io/en/1.9.2/plugins/b603_subprocess_without_shell_equals_true.html",
+          "references": [
+            "https://bandit.readthedocs.io/en/latest/plugins/b603.html"
+          ],
+          "metadata": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "line_range": [
+              191,
+              192,
+              193,
+              194,
+              195,
+              196
+            ],
+            "more_info": "https://bandit.readthedocs.io/en/1.9.2/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        }
+      ],
+      "scan_duration": 0.869781,
+      "success": true,
+      "error_message": null,
+      "summary": {
+        "total": 13,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 13
+      }
+    },
+    {
+      "scanner_name": "safety",
+      "scan_timestamp": "2025-12-27T14:33:41.869744",
+      "target_path": "src",
+      "vulnerabilities": [],
+      "scan_duration": 0.0,
+      "success": true,
+      "error_message": "No requirements files found",
+      "summary": {
+        "total": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      }
+    }
+  ],
+  "git_commit": "d90efa66a4a7d4d475cd621ecd435811ffc98b0d",
+  "git_branch": "main",
+  "config_used": {
+    "gate": {
+      "thresholds": {
+        "block_on_critical": true,
+        "block_on_high_count": 3,
+        "block_on_medium_count": 10,
+        "max_total_score": 25
+      },
+      "bandit": {
+        "enabled": true,
+        "exclude_dirs": [
+          ".venv",
+          "venv",
+          "env",
+          "tests",
+          "test",
+          "node_modules",
+          "__pycache__"
+        ],
+        "skip_tests": []
+      },
+      "safety": {
+        "enabled": true,
+        "requirements_files": [
+          "requirements.txt",
+          "requirements-dev.txt"
+        ]
+      },
+      "report": {
+        "output_dir": "reports",
+        "formats": [
+          "json",
+          "html"
+        ]
+      }
+    }
+  }
+}

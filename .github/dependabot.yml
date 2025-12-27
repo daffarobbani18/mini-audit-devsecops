@@ -1,0 +1,50 @@
+# Dependabot Configuration
+# Keep dependencies up to date automatically
+
+version: 2
+updates:
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Jakarta"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "chore(deps)"
+    reviewers:
+      - "MAINTAINER_USERNAME"  # Replace with actual username
+    groups:
+      security-scanners:
+        patterns:
+          - "bandit*"
+          - "safety*"
+        update-types:
+          - "minor"
+          - "patch"
+      development:
+        patterns:
+          - "pytest*"
+          - "black"
+          - "isort"
+          - "flake8"
+        update-types:
+          - "minor"
+          - "patch"
+          
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(ci)"

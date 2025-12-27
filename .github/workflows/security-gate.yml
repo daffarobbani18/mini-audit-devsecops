@@ -1,0 +1,387 @@
+# =============================================================================
+# DevSecOps Security Gate - Main CI/CD Workflow
+# =============================================================================
+# This workflow runs security scans on every push and pull request.
+# It will BLOCK deployment if critical vulnerabilities are found.
+#
+# Triggers:
+#   - Push to main/develop branches
+#   - Pull requests to main branch
+#   - Manual trigger (workflow_dispatch)
+#
+# Exit Codes:
+#   0 = Security gate PASSED (safe to deploy)
+#   1 = Security gate FAILED (vulnerabilities found)
+# =============================================================================
+
+name: 🛡️ Security Gate
+
+on:
+  push:
+    branches: 
+      - main
+      - develop
+      - 'feature/**'
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+      
+  pull_request:
+    branches: 
+      - main
+      - develop
+    types: [opened, synchronize, reopened]
+    
+  workflow_dispatch:
+    inputs:
+      scan_path:
+        description: 'Path to scan (default: entire repo)'
+        required: false
+        default: '.'
+      fail_on_findings:
+        description: 'Fail pipeline on security findings'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+# Prevent concurrent runs on same branch
+concurrency:
+  group: security-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: '3.11'
+  REPORTS_DIR: 'reports'
+
+jobs:
+  # ===========================================================================
+  # Job 1: Security Audit
+  # ===========================================================================
+  security-audit:
+    name: 🔍 Security Scan
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+      
+    outputs:
+      gate_decision: ${{ steps.audit.outputs.gate_decision }}
+      critical_count: ${{ steps.audit.outputs.critical_count }}
+      high_count: ${{ steps.audit.outputs.high_count }}
+      total_score: ${{ steps.audit.outputs.total_score }}
+      
+    steps:
+      # -----------------------------------------------------------------------
+      # Setup
+      # -----------------------------------------------------------------------
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for accurate blame
+          
+      - name: 🐍 Setup Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          
+      - name: 📦 Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: 🔧 Verify Scanner Installation
+        run: |
+          echo "=== Bandit Version ==="
+          bandit --version
+          echo ""
+          echo "=== Safety Version ==="
+          safety --version
+          
+      # -----------------------------------------------------------------------
+      # Security Scans
+      # -----------------------------------------------------------------------
+      - name: 🛡️ Run Security Audit
+        id: audit
+        run: |
+          echo "🔍 Starting security audit..."
+          
+          # Determine scan path
+          SCAN_PATH="${{ github.event.inputs.scan_path || '.' }}"
+          
+          # Create reports directory
+          mkdir -p ${{ env.REPORTS_DIR }}
+          
+          # Run the audit using our tool
+          python scripts/ci_runner.py \
+            --target "$SCAN_PATH" \
+            --output "${{ env.REPORTS_DIR }}" \
+            --format json html \
+            --ci-mode \
+            2>&1 | tee audit_output.log
+          
+          # Capture exit code
+          AUDIT_EXIT_CODE=${PIPESTATUS[0]}
+          
+          # Parse results for GitHub outputs
+          if [ -f "${{ env.REPORTS_DIR }}/audit_summary.json" ]; then
+            GATE_DECISION=$(jq -r '.gate_decision' ${{ env.REPORTS_DIR }}/audit_summary.json)
+            CRITICAL_COUNT=$(jq -r '.findings.critical' ${{ env.REPORTS_DIR }}/audit_summary.json)
+            HIGH_COUNT=$(jq -r '.findings.high' ${{ env.REPORTS_DIR }}/audit_summary.json)
+            TOTAL_SCORE=$(jq -r '.total_score' ${{ env.REPORTS_DIR }}/audit_summary.json)
+          else
+            GATE_DECISION="ERROR"
+            CRITICAL_COUNT="0"
+            HIGH_COUNT="0"
+            TOTAL_SCORE="0"
+          fi
+          
+          # Set outputs for other jobs
+          echo "gate_decision=$GATE_DECISION" >> $GITHUB_OUTPUT
+          echo "critical_count=$CRITICAL_COUNT" >> $GITHUB_OUTPUT
+          echo "high_count=$HIGH_COUNT" >> $GITHUB_OUTPUT
+          echo "total_score=$TOTAL_SCORE" >> $GITHUB_OUTPUT
+          
+          # Set exit code based on gate decision
+          if [ "${{ github.event.inputs.fail_on_findings }}" = "false" ]; then
+            echo "⚠️ Fail on findings disabled - exiting with 0"
+            exit 0
+          fi
+          
+          exit $AUDIT_EXIT_CODE
+          
+      # -----------------------------------------------------------------------
+      # Reports & Artifacts
+      # -----------------------------------------------------------------------
+      - name: 📊 Upload Security Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-report-${{ github.sha }}
+          path: |
+            ${{ env.REPORTS_DIR }}/*.json
+            ${{ env.REPORTS_DIR }}/*.html
+          retention-days: 30
+          
+      - name: 📝 Generate Job Summary
+        if: always()
+        run: |
+          echo "## 🛡️ Security Audit Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f "${{ env.REPORTS_DIR }}/audit_summary.json" ]; then
+            DECISION=$(jq -r '.gate_decision' ${{ env.REPORTS_DIR }}/audit_summary.json)
+            CRITICAL=$(jq -r '.findings.critical' ${{ env.REPORTS_DIR }}/audit_summary.json)
+            HIGH=$(jq -r '.findings.high' ${{ env.REPORTS_DIR }}/audit_summary.json)
+            MEDIUM=$(jq -r '.findings.medium' ${{ env.REPORTS_DIR }}/audit_summary.json)
+            LOW=$(jq -r '.findings.low' ${{ env.REPORTS_DIR }}/audit_summary.json)
+            SCORE=$(jq -r '.total_score' ${{ env.REPORTS_DIR }}/audit_summary.json)
+            
+            if [ "$DECISION" = "PASSED" ]; then
+              echo "### ✅ Security Gate: PASSED" >> $GITHUB_STEP_SUMMARY
+            elif [ "$DECISION" = "WARNING" ]; then
+              echo "### ⚠️ Security Gate: WARNING" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "### ❌ Security Gate: FAILED" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔴 Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🟠 High | $HIGH |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🟡 Medium | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🟢 Low | $LOW |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Total Risk Score:** $SCORE" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ⚠️ No audit results available" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📋 **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "🌿 **Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "👤 **Triggered by:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          
+      # -----------------------------------------------------------------------
+      # PR Comment (only on pull requests)
+      # -----------------------------------------------------------------------
+      - name: 💬 Comment on Pull Request
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let summaryData = {};
+            try {
+              const summaryPath = '${{ env.REPORTS_DIR }}/audit_summary.json';
+              if (fs.existsSync(summaryPath)) {
+                summaryData = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+              }
+            } catch (e) {
+              console.log('Could not read summary:', e);
+            }
+            
+            const decision = summaryData.gate_decision || 'UNKNOWN';
+            const findings = summaryData.findings || {critical: 0, high: 0, medium: 0, low: 0};
+            const score = summaryData.total_score || 0;
+            
+            let statusIcon = '❓';
+            let statusText = 'Unknown';
+            if (decision === 'PASSED') {
+              statusIcon = '✅';
+              statusText = 'PASSED';
+            } else if (decision === 'WARNING') {
+              statusIcon = '⚠️';
+              statusText = 'WARNING';
+            } else if (decision === 'FAILED') {
+              statusIcon = '❌';
+              statusText = 'FAILED';
+            }
+            
+            const body = `## 🛡️ Security Audit Report
+            
+            ### ${statusIcon} Gate Decision: **${statusText}**
+            
+            | Severity | Count |
+            |----------|-------|
+            | 🔴 Critical | ${findings.critical} |
+            | 🟠 High | ${findings.high} |
+            | 🟡 Medium | ${findings.medium} |
+            | 🟢 Low | ${findings.low} |
+            
+            **Risk Score:** ${score}
+            
+            ---
+            <details>
+            <summary>📋 What do these results mean?</summary>
+            
+            - **PASSED**: No blocking security issues found. Safe to merge.
+            - **WARNING**: Some security issues found, but below blocking threshold. Review recommended.
+            - **FAILED**: Critical security issues found. Must be fixed before merge.
+            
+            </details>
+            
+            📊 [View Full Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            
+            ---
+            *🤖 DevSecOps Gate - Automated Security Audit*
+            `;
+            
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(c => 
+              c.user.type === 'Bot' && 
+              c.body.includes('🛡️ Security Audit Report')
+            );
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+  # ===========================================================================
+  # Job 2: SARIF Upload (for GitHub Security tab)
+  # ===========================================================================
+  upload-sarif:
+    name: 📤 Upload SARIF
+    runs-on: ubuntu-latest
+    needs: security-audit
+    if: always() && github.event_name != 'pull_request'
+    
+    permissions:
+      security-events: write
+      
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          
+      - name: 📦 Install Bandit
+        run: pip install bandit
+        
+      - name: 🔍 Run Bandit with SARIF output
+        run: |
+          bandit -r src/ -f sarif -o bandit-results.sarif --exit-zero || true
+          
+      - name: 📤 Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: bandit-results.sarif
+          category: bandit
+
+  # ===========================================================================
+  # Job 3: Gate Decision Summary
+  # ===========================================================================
+  gate-summary:
+    name: 🚦 Gate Summary
+    runs-on: ubuntu-latest
+    needs: security-audit
+    if: always()
+    
+    steps:
+      - name: 🚦 Security Gate Decision
+        run: |
+          DECISION="${{ needs.security-audit.outputs.gate_decision }}"
+          CRITICAL="${{ needs.security-audit.outputs.critical_count }}"
+          HIGH="${{ needs.security-audit.outputs.high_count }}"
+          
+          echo "=================================="
+          echo "    SECURITY GATE DECISION"
+          echo "=================================="
+          echo ""
+          
+          if [ "$DECISION" = "PASSED" ]; then
+            echo "✅ PASSED - Safe to deploy"
+            echo ""
+            echo "No blocking security issues found."
+            exit 0
+            
+          elif [ "$DECISION" = "WARNING" ]; then
+            echo "⚠️ WARNING - Review recommended"
+            echo ""
+            echo "Some security issues found but below threshold."
+            echo "Critical: $CRITICAL | High: $HIGH"
+            exit 0
+            
+          else
+            echo "❌ FAILED - Deployment blocked"
+            echo ""
+            echo "Critical security issues must be fixed!"
+            echo "Critical: $CRITICAL | High: $HIGH"
+            
+            # Only fail if this is not a manual run with fail_on_findings=false
+            if [ "${{ github.event.inputs.fail_on_findings }}" != "false" ]; then
+              exit 1
+            fi
+          fi
