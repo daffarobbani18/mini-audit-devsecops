@@ -47,23 +47,23 @@ def main(input_file, format, output):
     in specified formats.
     """
     console.print("[bold blue]📄 Report Generator[/bold blue]\n")
-    
+
     input_path = Path(input_file)
     output_dir = Path(output) if output else input_path.parent
-    
+
     # Load audit result
     with open(input_path, "r", encoding="utf-8") as f:
         data = json.load(f)
-    
+
     console.print(f"📂 Input: [cyan]{input_file}[/cyan]")
     console.print(f"📁 Output: [cyan]{output_dir}[/cyan]")
     console.print(f"📋 Formats: [cyan]{', '.join(format)}[/cyan]\n")
-    
+
     base_name = input_path.stem
-    
+
     for fmt in format:
         output_path = output_dir / f"{base_name}.{fmt}"
-        
+
         if fmt == "html":
             generate_html(data, output_path)
         elif fmt == "csv":
@@ -72,9 +72,9 @@ def main(input_file, format, output):
             # Copy with pretty print
             with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
-        
+
         console.print(f"✅ Generated: [green]{output_path}[/green]")
-    
+
     console.print("\n[bold green]Done![/bold green]")
 
 
@@ -82,12 +82,10 @@ def generate_html(data, output_path):
     """Generate HTML report."""
     # Reuse HTML generation from orchestrator
     from src.orchestrator import AuditOrchestrator
-    from src.models.audit_result import AuditResult, Severity, GateDecision, Vulnerability, ScanResult
-    from datetime import datetime
-    
+
     # Reconstruct minimal AuditResult for HTML generation
     orchestrator = AuditOrchestrator()
-    
+
     # Build simple HTML
     html = f"""
 <!DOCTYPE html>
@@ -116,7 +114,7 @@ def generate_html(data, output_path):
 </body>
 </html>
     """
-    
+
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html)
 
@@ -124,14 +122,14 @@ def generate_html(data, output_path):
 def generate_csv(data, output_path):
     """Generate CSV report of vulnerabilities."""
     import csv
-    
+
     with open(output_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow([
-            "ID", "Severity", "Title", "File", "Line", 
+            "ID", "Severity", "Title", "File", "Line",
             "Scanner", "CWE", "OWASP", "Remediation"
         ])
-        
+
         for scan_result in data.get("scan_results", []):
             for vuln in scan_result.get("vulnerabilities", []):
                 writer.writerow([

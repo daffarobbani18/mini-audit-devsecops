@@ -19,9 +19,9 @@ def render_filter_sidebar() -> dict:
         Dict with filter values
     """
     filters = {}
-    
+
     st.markdown("### 🔍 Filters")
-    
+
     # Severity filter
     filters['severities'] = st.multiselect(
         "Severity",
@@ -29,7 +29,7 @@ def render_filter_sidebar() -> dict:
         default=['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'],
         help="Filter vulnerabilities by severity"
     )
-    
+
     # Scanner filter
     filters['scanners'] = st.multiselect(
         "Scanner",
@@ -37,7 +37,7 @@ def render_filter_sidebar() -> dict:
         default=['bandit', 'safety'],
         help="Filter by scanner source"
     )
-    
+
     return filters
 
 
@@ -54,23 +54,23 @@ def render_date_filter(
         Tuple of (start_date, end_date)
     """
     st.markdown("### 📅 Date Range")
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         start_date = st.date_input(
             "From",
             value=datetime.now() - timedelta(days=default_days),
             help="Start date for filtering"
         )
-    
+
     with col2:
         end_date = st.date_input(
             "To",
             value=datetime.now(),
             help="End date for filtering"
         )
-    
+
     return (
         datetime.combine(start_date, datetime.min.time()),
         datetime.combine(end_date, datetime.max.time())
@@ -115,13 +115,13 @@ def render_report_selector(
     if not reports_dir.exists():
         st.warning(f"Reports directory not found: {reports_dir}")
         return None
-    
+
     reports = sorted(reports_dir.glob("audit_report_*.json"), reverse=True)
-    
+
     if not reports:
         st.info("No audit reports found. Run a scan first!")
         return None
-    
+
     # Create options with timestamps
     options = {}
     for report in reports:
@@ -133,14 +133,14 @@ def render_report_selector(
         except:
             display_name = name
         options[display_name] = report
-    
+
     selected = st.selectbox(
         "Select Report",
         options=list(options.keys()),
         key=key,
         help="Choose an audit report to view"
     )
-    
+
     return options.get(selected)
 
 
@@ -157,7 +157,7 @@ def render_scanner_toggle(
         Dict mapping scanner names to enabled state
     """
     st.markdown("### 🔧 Scanners")
-    
+
     return {
         'bandit': st.checkbox("Bandit (SAST)", value=True, key=f"{key}_bandit", help="Static Application Security Testing"),
         'safety': st.checkbox("Safety (SCA)", value=True, key=f"{key}_safety", help="Software Composition Analysis"),
@@ -172,7 +172,7 @@ def render_export_options() -> dict:
         Dict with export settings
     """
     st.markdown("### 📤 Export Options")
-    
+
     return {
         'format': st.selectbox(
             "Format",
@@ -192,7 +192,7 @@ def render_threshold_settings() -> dict:
         Dict with threshold values
     """
     st.markdown("### ⚙️ Thresholds")
-    
+
     return {
         'block_on_critical': st.checkbox("Block on Critical", value=True, help="Block deployment if any critical vulnerabilities found"),
         'block_on_high_count': st.number_input("Block on High Count", value=3, min_value=0, help="Block if high vulnerabilities exceed this count"),

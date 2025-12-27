@@ -39,7 +39,7 @@ from src.orchestrator import AuditOrchestrator
 
 __all__ = [
     "Config",
-    "GateConfig", 
+    "GateConfig",
     "SecurityGate",
     "AuditOrchestrator",
     "__version__",

@@ -29,7 +29,7 @@ def render_metric_card(
         icon: Optional emoji icon
     """
     display_label = f"{icon} {label}" if icon else label
-    
+
     st.metric(
         label=display_label,
         value=value,
@@ -52,7 +52,7 @@ def render_metric_row(
         columns: Number of columns
     """
     cols = st.columns(columns)
-    
+
     for idx, (name, config) in enumerate(metrics.items()):
         with cols[idx % columns]:
             render_metric_card(
@@ -84,17 +84,17 @@ def render_gate_status_banner(
         'FAILED': '❌',
         'ERROR': '🚫',
     }
-    
+
     messages = {
         'PASSED': 'SECURITY GATE: PASSED',
         'WARNING': 'SECURITY GATE: WARNING',
         'FAILED': 'SECURITY GATE: FAILED',
         'ERROR': 'SECURITY GATE: ERROR',
     }
-    
+
     icon = icons.get(decision, '❓') if show_icon else ''
     message = messages.get(decision, 'SECURITY GATE: UNKNOWN')
-    
+
     if decision == 'PASSED':
         st.success(f"{icon} **{message}**")
     elif decision == 'WARNING':
@@ -103,7 +103,7 @@ def render_gate_status_banner(
         st.error(f"{icon} **{message}**")
     else:
         st.info(f"{icon} **{message}**")
-    
+
     if reason:
         st.caption(reason)
 
@@ -122,7 +122,7 @@ def render_kpi_cards(
         threshold: Score threshold for comparison
     """
     col1, col2, col3, col4, col5 = st.columns(5)
-    
+
     with col1:
         critical = findings.get('critical', 0)
         st.markdown(f"""
@@ -131,7 +131,7 @@ def render_kpi_cards(
             <p style="margin: 5px 0 0 0; font-size: 12px; color: #6c757d;">Critical</p>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col2:
         high = findings.get('high', 0)
         st.markdown(f"""
@@ -140,7 +140,7 @@ def render_kpi_cards(
             <p style="margin: 5px 0 0 0; font-size: 12px; color: #6c757d;">High</p>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col3:
         medium = findings.get('medium', 0)
         st.markdown(f"""
@@ -149,7 +149,7 @@ def render_kpi_cards(
             <p style="margin: 5px 0 0 0; font-size: 12px; color: #6c757d;">Medium</p>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col4:
         low = findings.get('low', 0)
         st.markdown(f"""
@@ -158,7 +158,7 @@ def render_kpi_cards(
             <p style="margin: 5px 0 0 0; font-size: 12px; color: #6c757d;">Low</p>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col5:
         score_color = '#721c24' if total_score > threshold else '#155724'
         score_bg = '#f8d7da' if total_score > threshold else '#d4edda'
@@ -178,9 +178,9 @@ def render_audit_info(audit_data: Dict) -> None:
         audit_data: Dict containing audit metadata
     """
     st.markdown("### 📋 Audit Information")
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         st.markdown(f"""
         | Field | Value |
@@ -189,7 +189,7 @@ def render_audit_info(audit_data: Dict) -> None:
         | **Timestamp** | {audit_data.get('audit_timestamp', 'N/A')} |
         | **Target Path** | `{audit_data.get('target_path', 'N/A')}` |
         """)
-    
+
     with col2:
         git_commit = audit_data.get('git_commit', '')
         git_branch = audit_data.get('git_branch', 'N/A')

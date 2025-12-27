@@ -24,7 +24,7 @@ class SeverityCalculator:
         score = calculator.calculate_total_score(vulnerabilities)
         decision, reason = calculator.get_gate_decision(vulnerabilities)
     """
-    
+
     def __init__(self, thresholds: SeverityThresholds):
         """
         Initialize calculator with thresholds.
@@ -33,7 +33,7 @@ class SeverityCalculator:
             thresholds: SeverityThresholds configuration
         """
         self.thresholds = thresholds
-    
+
     def calculate_total_score(self, vulnerabilities: List[Vulnerability]) -> int:
         """
         Calculate total severity score for all vulnerabilities.
@@ -45,13 +45,13 @@ class SeverityCalculator:
             Total severity score
         """
         total = 0
-        
+
         for vuln in vulnerabilities:
             score = self._get_severity_score(vuln.severity)
             total += score
-        
+
         return total
-    
+
     def _get_severity_score(self, severity: Severity) -> int:
         """Get score for a severity level."""
         scores = {
@@ -62,9 +62,9 @@ class SeverityCalculator:
             Severity.INFO: self.thresholds.info_score,
         }
         return scores.get(severity, 0)
-    
+
     def count_by_severity(
-        self, 
+        self,
         vulnerabilities: List[Vulnerability]
     ) -> dict:
         """
@@ -83,14 +83,14 @@ class SeverityCalculator:
             Severity.LOW: 0,
             Severity.INFO: 0,
         }
-        
+
         for vuln in vulnerabilities:
             counts[vuln.severity] += 1
-        
+
         return counts
-    
+
     def get_gate_decision(
-        self, 
+        self,
         vulnerabilities: List[Vulnerability]
     ) -> Tuple[GateDecision, str]:
         """
@@ -107,10 +107,10 @@ class SeverityCalculator:
         """
         if not vulnerabilities:
             return GateDecision.PASSED, "No security vulnerabilities found"
-        
+
         counts = self.count_by_severity(vulnerabilities)
         total_score = self.calculate_total_score(vulnerabilities)
-        
+
         # Check for critical vulnerabilities
         if self.thresholds.block_on_critical and counts[Severity.CRITICAL] > 0:
             return (
@@ -118,7 +118,7 @@ class SeverityCalculator:
                 f"CRITICAL vulnerabilities found: {counts[Severity.CRITICAL]}. "
                 f"Critical issues must be fixed before deployment."
             )
-        
+
         # Check high vulnerability count
         if counts[Severity.HIGH] >= self.thresholds.block_on_high_count:
             return (
@@ -126,7 +126,7 @@ class SeverityCalculator:
                 f"Too many HIGH severity vulnerabilities: {counts[Severity.HIGH]} "
                 f"(threshold: {self.thresholds.block_on_high_count})"
             )
-        
+
         # Check medium vulnerability count
         if counts[Severity.MEDIUM] >= self.thresholds.block_on_medium_count:
             return (
@@ -134,7 +134,7 @@ class SeverityCalculator:
                 f"Too many MEDIUM severity vulnerabilities: {counts[Severity.MEDIUM]} "
                 f"(threshold: {self.thresholds.block_on_medium_count})"
             )
-        
+
         # Check total score
         if total_score > self.thresholds.max_total_score:
             return (
@@ -142,7 +142,7 @@ class SeverityCalculator:
                 f"Total severity score {total_score} exceeds threshold "
                 f"({self.thresholds.max_total_score})"
             )
-        
+
         # Check if there are any high findings (warning)
         if counts[Severity.HIGH] > 0:
             return (
@@ -150,7 +150,7 @@ class SeverityCalculator:
                 f"HIGH severity vulnerabilities found: {counts[Severity.HIGH]}. "
                 f"Review recommended before deployment."
             )
-        
+
         # Check if there are medium findings (warning)
         if counts[Severity.MEDIUM] > 0:
             return (
@@ -158,15 +158,15 @@ class SeverityCalculator:
                 f"MEDIUM severity vulnerabilities found: {counts[Severity.MEDIUM]}. "
                 f"Consider reviewing before deployment."
             )
-        
+
         # Only low/info findings
         return (
             GateDecision.PASSED,
             f"Security scan completed. Found {len(vulnerabilities)} low-risk issues."
         )
-    
+
     def get_risk_summary(
-        self, 
+        self,
         vulnerabilities: List[Vulnerability]
     ) -> dict:
         """
@@ -181,7 +181,7 @@ class SeverityCalculator:
         counts = self.count_by_severity(vulnerabilities)
         total_score = self.calculate_total_score(vulnerabilities)
         decision, reason = self.get_gate_decision(vulnerabilities)
-        
+
         return {
             "total_vulnerabilities": len(vulnerabilities),
             "severity_counts": {

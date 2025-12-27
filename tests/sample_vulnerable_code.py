@@ -19,7 +19,7 @@ import random
 # =============================================================================
 def check_admin(user):
     """Bad: Using assert for security check."""
-    assert user.is_admin, "User must be admin"  # nosec - intentional for testing
+    assert user.is_admin, "User must be admin"  # VULNERABLE: B101
     return True
 
 
@@ -28,7 +28,7 @@ def check_admin(user):
 # =============================================================================
 def execute_code(code_string):
     """Bad: Using exec to run arbitrary code."""
-    exec(code_string)  # nosec - intentional for testing
+    exec(code_string)  # VULNERABLE: B102
 
 
 # =============================================================================
@@ -36,7 +36,7 @@ def execute_code(code_string):
 # =============================================================================
 def connect_database():
     """Bad: Hardcoded password in source code."""
-    password = "SuperSecret123!"  # nosec - intentional for testing
+    password = "SuperSecret123!"  # VULNERABLE: B105
     connection_string = f"postgresql://admin:{password}@localhost/db"
     return connection_string
 
@@ -44,7 +44,7 @@ def connect_database():
 # =============================================================================
 # B106: hardcoded_password_funcarg - Password as function argument
 # =============================================================================
-def login(username, password="default_password"):  # nosec - intentional for testing
+def login(username, password="default_password"):  # VULNERABLE: B106
     """Bad: Default password in function argument."""
     return authenticate(username, password)
 
@@ -59,7 +59,7 @@ def authenticate(username, password):
 # =============================================================================
 def save_temp_file(data):
     """Bad: Using hardcoded /tmp path."""
-    filepath = "/tmp/sensitive_data.txt"  # nosec - intentional for testing
+    filepath = "/tmp/sensitive_data.txt"  # VULNERABLE: B108
     with open(filepath, "w") as f:
         f.write(data)
 
@@ -69,7 +69,7 @@ def save_temp_file(data):
 # =============================================================================
 def load_user_data(data_bytes):
     """Bad: Using pickle to deserialize untrusted data."""
-    return pickle.loads(data_bytes)  # nosec - intentional for testing
+    return pickle.loads(data_bytes)  # VULNERABLE: B301
 
 
 # =============================================================================
@@ -77,12 +77,12 @@ def load_user_data(data_bytes):
 # =============================================================================
 def hash_password_weak(password):
     """Bad: Using MD5 for password hashing."""
-    return hashlib.md5(password.encode()).hexdigest()  # nosec - intentional for testing
+    return hashlib.md5(password.encode()).hexdigest()  # VULNERABLE: B303
 
 
 def hash_data_sha1(data):
     """Bad: Using SHA1 which is cryptographically weak."""
-    return hashlib.sha1(data.encode()).hexdigest()  # nosec - intentional for testing
+    return hashlib.sha1(data.encode()).hexdigest()  # VULNERABLE: B303
 
 
 # =============================================================================
@@ -90,7 +90,7 @@ def hash_data_sha1(data):
 # =============================================================================
 def calculate(expression):
     """Bad: Using eval to evaluate user input."""
-    return eval(expression)  # nosec - intentional for testing
+    return eval(expression)  # VULNERABLE: B307
 
 
 # =============================================================================
@@ -99,7 +99,7 @@ def calculate(expression):
 def generate_token():
     """Bad: Using random instead of secrets for token generation."""
     token = "".join(
-        random.choice("abcdefghijklmnopqrstuvwxyz0123456789")  # nosec - intentional
+        random.choice("abcdefghijklmnopqrstuvwxyz0123456789")  # VULNERABLE: B311
         for _ in range(32)
     )
     return token
@@ -110,7 +110,7 @@ def generate_token():
 # =============================================================================
 def run_command_unsafe(user_input):
     """Bad: Using shell=True with user input (command injection)."""
-    subprocess.Popen(f"echo {user_input}", shell=True)  # nosec - intentional for testing
+    subprocess.Popen(f"echo {user_input}", shell=True)  # VULNERABLE: B602
 
 
 # =============================================================================
@@ -118,7 +118,7 @@ def run_command_unsafe(user_input):
 # =============================================================================
 def get_user_unsafe(username):
     """Bad: SQL injection vulnerability."""
-    query = f"SELECT * FROM users WHERE username = '{username}'"  # nosec - intentional
+    query = f"SELECT * FROM users WHERE username = '{username}'"  # VULNERABLE: B608
     return query
 
 
@@ -129,7 +129,7 @@ def start_server():
     """Bad: Binding to all interfaces."""
     import socket
     s = socket.socket()
-    s.bind(("0.0.0.0", 8080))  # nosec - intentional for testing
+    s.bind(("0.0.0.0", 8080))  # VULNERABLE: B104
     return s
 
 

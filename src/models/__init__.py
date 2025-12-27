@@ -16,7 +16,7 @@ from src.models.compliance import ComplianceMapping, ComplianceStandard
 
 __all__ = [
     "AuditResult",
-    "ScanResult", 
+    "ScanResult",
     "Vulnerability",
     "Severity",
     "GateDecision",

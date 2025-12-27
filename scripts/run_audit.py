@@ -25,8 +25,6 @@ from rich.table import Table
 from rich.panel import Panel
 from rich import box
 
-from src.config import load_config
-from src.gate.security_gate import SecurityGate
 from src.orchestrator import AuditOrchestrator
 
 
@@ -81,53 +79,53 @@ def main(target_path, config, output, format, verbose, no_report):
         "[dim]Automated Security Analysis Tool[/dim]",
         border_style="blue"
     ))
-    
+
     console.print(f"\n📂 Target: [cyan]{target_path}[/cyan]")
-    
+
     if config:
         console.print(f"⚙️  Config: [cyan]{config}[/cyan]")
-    
+
     console.print()
-    
+
     # Initialize orchestrator
     orchestrator = AuditOrchestrator(
         config_path=config,
         output_dir=output
     )
-    
+
     # Check scanner availability
     with console.status("[bold green]Checking scanners..."):
         scanner_status = orchestrator.gate.check_scanners()
-    
+
     # Display scanner status
     scanner_table = Table(title="Scanner Status", box=box.ROUNDED)
     scanner_table.add_column("Scanner", style="cyan")
     scanner_table.add_column("Status", style="green")
     scanner_table.add_column("Version")
-    
+
     for name, status in scanner_status.items():
         status_str = "✅ Available" if status["available"] else "❌ Not Found"
         scanner_table.add_row(name, status_str, status["version"])
-    
+
     console.print(scanner_table)
     console.print()
-    
+
     # Run audit
     with console.status("[bold green]Running security scan..."):
         result = orchestrator.run_full_audit(target_path)
-    
+
     # Display results
     display_results(result, verbose)
-    
+
     # Save report
     if not no_report:
         with console.status("[bold green]Generating reports..."):
             saved_files = orchestrator.save_report(result, list(format))
-        
+
         console.print("\n📄 [bold]Reports saved:[/bold]")
         for fmt, path in saved_files.items():
             console.print(f"   - {fmt.upper()}: [cyan]{path}[/cyan]")
-    
+
     # Exit with appropriate code
     console.print()
     if result.passed:
@@ -150,7 +148,7 @@ def display_results(result, verbose):
     summary_table = Table(title="Audit Summary", box=box.ROUNDED)
     summary_table.add_column("Metric", style="cyan")
     summary_table.add_column("Value", justify="right")
-    
+
     summary_table.add_row("Audit ID", result.audit_id)
     summary_table.add_row("Timestamp", result.audit_timestamp.strftime("%Y-%m-%d %H:%M:%S"))
     summary_table.add_row("🔴 Critical", str(result.critical_count))
@@ -159,12 +157,12 @@ def display_results(result, verbose):
     summary_table.add_row("🟢 Low", str(result.low_count))
     summary_table.add_row("📊 Total Score", str(result.total_score))
     summary_table.add_row(
-        "Gate Decision", 
+        "Gate Decision",
         f"[{'green' if result.passed else 'red'}]{result.gate_decision.value}[/]"
     )
-    
+
     console.print(summary_table)
-    
+
     # Vulnerability details
     if result.all_vulnerabilities:
         console.print()
@@ -173,7 +171,7 @@ def display_results(result, verbose):
         vuln_table.add_column("Title", max_width=40)
         vuln_table.add_column("Location", max_width=30)
         vuln_table.add_column("Scanner")
-        
+
         severity_colors = {
             "CRITICAL": "red",
             "HIGH": "yellow",
@@ -181,7 +179,7 @@ def display_results(result, verbose):
             "LOW": "green",
             "INFO": "dim",
         }
-        
+
         for vuln in result.all_vulnerabilities[:20]:  # Limit to 20
             color = severity_colors.get(vuln.severity.value, "white")
             location = f"{vuln.file_path}:{vuln.line_number}" if vuln.file_path else "N/A"
@@ -191,9 +189,9 @@ def display_results(result, verbose):
                 location[:30],
                 vuln.scanner
             )
-        
+
         console.print(vuln_table)
-        
+
         if len(result.all_vulnerabilities) > 20:
             console.print(f"[dim]... and {len(result.all_vulnerabilities) - 20} more[/dim]")
 

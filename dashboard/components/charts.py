@@ -6,11 +6,10 @@ Visualization components using Plotly.
 """
 
 import streamlit as st
-import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 
 # Color schemes
@@ -51,14 +50,14 @@ def render_severity_pie_chart(
         findings.get('medium', 0),
         findings.get('low', 0),
     ]
-    colors = [SEVERITY_COLORS['CRITICAL'], SEVERITY_COLORS['HIGH'], 
+    colors = [SEVERITY_COLORS['CRITICAL'], SEVERITY_COLORS['HIGH'],
               SEVERITY_COLORS['MEDIUM'], SEVERITY_COLORS['LOW']]
-    
+
     # Skip if all zeros
     if sum(values) == 0:
         st.info("No vulnerabilities to display")
         return
-    
+
     fig = go.Figure(data=[go.Pie(
         labels=labels,
         values=values,
@@ -68,7 +67,7 @@ def render_severity_pie_chart(
         textposition='outside',
         hovertemplate='<b>%{label}</b><br>Count: %{value}<br>Percentage: %{percent}<extra></extra>'
     )])
-    
+
     fig.update_layout(
         title=dict(text=title, x=0.5, font=dict(size=16)),
         height=height,
@@ -76,7 +75,7 @@ def render_severity_pie_chart(
         legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5),
         margin=dict(t=50, b=50, l=20, r=20),
     )
-    
+
     st.plotly_chart(fig, use_container_width=True)
 
 
@@ -106,7 +105,7 @@ def render_severity_bar_chart(
         'Color': [SEVERITY_COLORS['CRITICAL'], SEVERITY_COLORS['HIGH'],
                   SEVERITY_COLORS['MEDIUM'], SEVERITY_COLORS['LOW']]
     })
-    
+
     if horizontal:
         fig = go.Figure(go.Bar(
             x=df['Count'],
@@ -124,7 +123,7 @@ def render_severity_bar_chart(
             text=df['Count'],
             textposition='outside',
         ))
-    
+
     fig.update_layout(
         title=dict(text=title, x=0.5, font=dict(size=16)),
         height=height,
@@ -133,7 +132,7 @@ def render_severity_bar_chart(
         xaxis_title=None,
         yaxis_title=None,
     )
-    
+
     st.plotly_chart(fig, use_container_width=True)
 
 
@@ -153,19 +152,19 @@ def render_trend_line_chart(
     if not data:
         st.info("No historical data available")
         return
-    
+
     # Prepare data
     df = pd.DataFrame(data)
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df = df.sort_values('timestamp')
-    
+
     fig = make_subplots(
         rows=2, cols=1,
         subplot_titles=('Total Vulnerabilities', 'Risk Score'),
         vertical_spacing=0.15,
         row_heights=[0.5, 0.5]
     )
-    
+
     # Total vulnerabilities line
     fig.add_trace(
         go.Scatter(
@@ -179,7 +178,7 @@ def render_trend_line_chart(
         ),
         row=1, col=1
     )
-    
+
     # Risk score line
     fig.add_trace(
         go.Scatter(
@@ -195,7 +194,7 @@ def render_trend_line_chart(
         ),
         row=2, col=1
     )
-    
+
     fig.update_layout(
         title=dict(text=title, x=0.5, font=dict(size=16)),
         height=height,
@@ -203,7 +202,7 @@ def render_trend_line_chart(
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
         margin=dict(t=80, b=30, l=50, r=30),
     )
-    
+
     st.plotly_chart(fig, use_container_width=True)
 
 
@@ -223,18 +222,18 @@ def render_scanner_comparison(
     if not scan_results:
         st.info("No scanner results to compare")
         return
-    
+
     scanners = []
     counts = []
-    
+
     for result in scan_results:
         scanner_name = result.get('scanner_name', 'Unknown')
         vuln_count = len(result.get('vulnerabilities', []))
         scanners.append(scanner_name.capitalize())
         counts.append(vuln_count)
-    
+
     colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c']
-    
+
     fig = go.Figure(go.Bar(
         x=scanners,
         y=counts,
@@ -242,7 +241,7 @@ def render_scanner_comparison(
         text=counts,
         textposition='outside',
     ))
-    
+
     fig.update_layout(
         title=dict(text=title, x=0.5, font=dict(size=16)),
         height=height,
@@ -251,7 +250,7 @@ def render_scanner_comparison(
         xaxis_title="Scanner",
         yaxis_title="Findings",
     )
-    
+
     st.plotly_chart(fig, use_container_width=True)
 
 
@@ -271,16 +270,16 @@ def render_compliance_radar(
     if not compliance_scores:
         st.info("No compliance data available")
         return
-    
+
     categories = list(compliance_scores.keys())
     values = list(compliance_scores.values())
-    
+
     # Close the radar chart
     categories.append(categories[0])
     values.append(values[0])
-    
+
     fig = go.Figure()
-    
+
     fig.add_trace(go.Scatterpolar(
         r=values,
         theta=categories,
@@ -290,7 +289,7 @@ def render_compliance_radar(
         marker=dict(size=8, color='#667eea'),
         name='Coverage'
     ))
-    
+
     fig.update_layout(
         polar=dict(
             radialaxis=dict(
@@ -304,7 +303,7 @@ def render_compliance_radar(
         showlegend=False,
         margin=dict(t=80, b=30, l=80, r=80),
     )
-    
+
     st.plotly_chart(fig, use_container_width=True)
 
 
@@ -324,7 +323,7 @@ def render_heatmap(
     if data.empty:
         st.info("No data for heatmap")
         return
-    
+
     fig = go.Figure(data=go.Heatmap(
         z=data.values,
         x=data.columns,
@@ -338,7 +337,7 @@ def render_heatmap(
         ],
         hovertemplate='File: %{y}<br>Severity: %{x}<br>Count: %{z}<extra></extra>'
     ))
-    
+
     fig.update_layout(
         title=dict(text=title, x=0.5, font=dict(size=16)),
         height=height,
@@ -346,5 +345,5 @@ def render_heatmap(
         xaxis_title="Severity",
         yaxis_title="File",
     )
-    
+
     st.plotly_chart(fig, use_container_width=True)

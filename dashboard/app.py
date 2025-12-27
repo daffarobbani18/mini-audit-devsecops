@@ -155,12 +155,12 @@ def render_sidebar():
             <p style="color: #6c757d; font-size: 12px;">Security Audit Dashboard</p>
         </div>
         """, unsafe_allow_html=True)
-        
+
         st.markdown("---")
-        
+
         # Navigation
         st.markdown("### 📍 Navigation")
-        
+
         pages = {
             'overview': ('📊 Overview', 'Executive summary and metrics'),
             'report_viewer': ('📋 Report Viewer', 'Detailed vulnerability analysis'),
@@ -169,10 +169,10 @@ def render_sidebar():
             'compliance': ('🏛️ Compliance', 'OWASP/CWE/NIST mapping'),
             'settings': ('⚙️ Settings', 'Configuration'),
         }
-        
+
         for page_key, (page_name, page_desc) in pages.items():
             if st.button(
-                page_name, 
+                page_name,
                 key=f"nav_{page_key}",
                 use_container_width=True,
                 type="primary" if st.session_state.current_page == page_key else "secondary",
@@ -180,16 +180,16 @@ def render_sidebar():
             ):
                 st.session_state.current_page = page_key
                 st.rerun()
-        
+
         st.markdown("---")
-        
+
         # Quick stats
         st.markdown("### 📊 Quick Stats")
         reports_count = len(list(st.session_state.reports_dir.glob("audit_report_*.json"))) if st.session_state.reports_dir.exists() else 0
         st.metric("Total Reports", reports_count)
-        
+
         st.markdown("---")
-        
+
         # Info
         st.markdown("""
         <div style="text-align: center; font-size: 11px; color: #6c757d;">
@@ -201,10 +201,10 @@ def render_sidebar():
 
 def main():
     """Main application entry point."""
-    
+
     # Render sidebar
     render_sidebar()
-    
+
     # Route to current page
     page_map = {
         'overview': overview.render,
@@ -214,9 +214,9 @@ def main():
         'compliance': compliance.render,
         'settings': settings.render,
     }
-    
+
     current_page = st.session_state.current_page
-    
+
     if current_page in page_map:
         page_map[current_page]()
     else:

@@ -96,37 +96,54 @@ streamlit run dashboard/app.py
 ```
 devsecops-gate/
 ├── .github/
-│   └── workflows/
-│       └── security-gate.yml    # CI/CD workflow
+│   ├── workflows/
+│   │   ├── security-gate.yml      # CI/CD workflow
+│   │   └── scheduled-audit.yml    # Weekly scheduled audit
+│   ├── ISSUE_TEMPLATE/
+│   └── PULL_REQUEST_TEMPLATE.md
+├── .gitlab-ci.yml                 # GitLab CI alternative
 ├── src/
 │   ├── __init__.py
-│   ├── config.py                # Configuration management
-│   ├── orchestrator.py          # Audit orchestration
+│   ├── config.py                  # Configuration management
+│   ├── orchestrator.py            # Audit orchestration
 │   ├── models/
-│   │   ├── audit_result.py      # Data models
-│   │   └── compliance.py        # CWE/OWASP mapping
+│   │   ├── audit_result.py        # Data models
+│   │   └── compliance.py          # CWE/OWASP mapping
 │   ├── scanners/
-│   │   ├── base_scanner.py      # Scanner interface
-│   │   ├── bandit_scanner.py    # SAST scanner
-│   │   └── safety_scanner.py    # SCA scanner
+│   │   ├── base_scanner.py        # Scanner interface
+│   │   ├── bandit_scanner.py      # SAST scanner
+│   │   └── safety_scanner.py      # SCA scanner
 │   └── gate/
-│       ├── security_gate.py     # Gate logic
+│       ├── security_gate.py       # Gate logic
 │       └── severity_calculator.py
 ├── dashboard/
-│   └── app.py                   # Streamlit dashboard
+│   ├── app.py                     # Main Streamlit app
+│   ├── pages/
+│   │   ├── overview.py            # Executive summary
+│   │   ├── report_viewer.py       # Report viewer
+│   │   ├── live_scan.py           # Live scanning
+│   │   ├── trends.py              # Trend analysis
+│   │   ├── compliance.py          # Compliance mapping
+│   │   └── settings.py            # Settings page
+│   └── components/
+│       ├── charts.py              # Reusable charts
+│       ├── metrics.py             # Metric cards
+│       ├── tables.py              # Data tables
+│       └── filters.py             # Filter components
 ├── scripts/
-│   ├── run_audit.py             # CLI entry point
-│   └── generate_report.py       # Report generator
+│   ├── run_audit.py               # CLI entry point
+│   ├── ci_runner.py               # CI-optimized runner
+│   └── generate_report.py         # Report generator
 ├── tests/
 │   ├── test_scanners.py
 │   ├── test_gate.py
 │   └── sample_vulnerable_code.py
-├── reports/                     # Generated reports
 ├── docs/
-│   └── PROJECT_PHASES.md        # Development phases
-├── gate_config.yaml             # Configuration file
+│   └── PROJECT_PHASES.md          # Development phases
+├── gate_config.yaml               # Configuration file
 ├── requirements.txt
 ├── pyproject.toml
+├── CONTRIBUTING.md                # Contribution guide
 └── README.md
 ```
 

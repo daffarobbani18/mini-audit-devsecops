@@ -18,8 +18,6 @@ Reference: https://bandit.readthedocs.io/
 
 import json
 import subprocess
-import tempfile
-import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -44,37 +42,37 @@ class BanditScanner(BaseScanner):
         for vuln in result.vulnerabilities:
             print(f"{vuln.severity}: {vuln.title}")
     """
-    
+
     def __init__(self, config: Optional[GateConfig] = None):
         """Initialize Bandit scanner."""
         super().__init__(config)
         self.bandit_config: BanditConfig = self.config.bandit if config else BanditConfig()
-    
+
     @property
     def name(self) -> str:
         """Scanner name identifier."""
         return "bandit"
-    
+
     def _get_bandit_executable(self) -> str:
         """Get the path to bandit executable."""
         import sys
         import shutil
         from pathlib import Path
-        
+
         # First try to find bandit in the same directory as Python
         python_dir = Path(sys.executable).parent
         bandit_path = python_dir / "bandit.exe" if sys.platform == "win32" else python_dir / "bandit"
-        
+
         if bandit_path.exists():
             return str(bandit_path)
-        
+
         # Fall back to shutil.which
         found = shutil.which("bandit")
         if found:
             return found
-        
+
         return "bandit"
-    
+
     @property
     def version(self) -> str:
         """Get installed Bandit version."""
@@ -91,7 +89,7 @@ class BanditScanner(BaseScanner):
         except (subprocess.SubprocessError, FileNotFoundError):
             pass
         return "unknown"
-    
+
     def is_available(self) -> bool:
         """Check if Bandit is installed and available."""
         try:
@@ -104,7 +102,7 @@ class BanditScanner(BaseScanner):
             return result.returncode == 0
         except (subprocess.SubprocessError, FileNotFoundError):
             return False
-    
+
     def scan(self, target_path: str) -> ScanResult:
         """
         Run Bandit scan on target path.
@@ -116,7 +114,7 @@ class BanditScanner(BaseScanner):
             ScanResult with vulnerabilities found
         """
         start_time = datetime.now()
-        
+
         # Validate target exists
         target = Path(target_path)
         if not target.exists():
@@ -127,7 +125,7 @@ class BanditScanner(BaseScanner):
                 success=False,
                 error_message=f"Target path does not exist: {target_path}",
             )
-        
+
         # Check if Bandit is available
         if not self.is_available():
             return ScanResult(
@@ -137,11 +135,11 @@ class BanditScanner(BaseScanner):
                 success=False,
                 error_message="Bandit is not installed. Run: pip install bandit",
             )
-        
+
         try:
             # Build Bandit command
             cmd = self._build_command(target_path)
-            
+
             # Execute Bandit
             result = subprocess.run(
                 cmd,
@@ -149,16 +147,16 @@ class BanditScanner(BaseScanner):
                 text=True,
                 timeout=300,  # 5 minute timeout
             )
-            
+
             # Parse JSON output
             raw_output = self._parse_output(result.stdout)
-            
+
             # Convert to vulnerabilities
             vulnerabilities = self._convert_results(raw_output, target_path)
-            
+
             end_time = datetime.now()
             duration = (end_time - start_time).total_seconds()
-            
+
             return ScanResult(
                 scanner_name=self.name,
                 scan_timestamp=start_time,
@@ -168,7 +166,7 @@ class BanditScanner(BaseScanner):
                 success=True,
                 raw_output=raw_output,
             )
-            
+
         except subprocess.TimeoutExpired:
             return ScanResult(
                 scanner_name=self.name,
@@ -185,7 +183,7 @@ class BanditScanner(BaseScanner):
                 success=False,
                 error_message=f"Bandit scan failed: {str(e)}",
             )
-    
+
     def _build_command(self, target_path: str) -> List[str]:
         """Build Bandit command with configured options."""
         cmd = [
@@ -194,87 +192,87 @@ class BanditScanner(BaseScanner):
             "-f", "json",  # JSON output format
             "-q",  # Quiet (no progress)
         ]
-        
+
         # Add severity filter
         if self.bandit_config.severity_levels:
             severity_map = {"LOW": "l", "MEDIUM": "m", "HIGH": "h"}
             levels = "".join(
-                severity_map.get(s, "") 
+                severity_map.get(s, "")
                 for s in self.bandit_config.severity_levels
             )
             # Bandit severity: -l (low and above), -ll (medium and above), -lll (high only)
             # For now, we include all levels if LOW is included
-        
+
         # Add confidence filter
         if self.bandit_config.confidence_levels:
             conf_map = {"LOW": "l", "MEDIUM": "m", "HIGH": "h"}
             # Similar logic for confidence
-        
+
         # Add exclude directories
         if self.bandit_config.exclude_dirs:
             exclude = ",".join(self.bandit_config.exclude_dirs)
             cmd.extend(["--exclude", exclude])
-        
+
         # Add skipped tests
         if self.bandit_config.skip_tests:
             skips = ",".join(self.bandit_config.skip_tests)
             cmd.extend(["--skip", skips])
-        
+
         # Add baseline if configured
         if self.bandit_config.baseline_file:
             baseline = Path(self.bandit_config.baseline_file)
             if baseline.exists():
                 cmd.extend(["--baseline", str(baseline)])
-        
+
         # Add target path
         cmd.append(target_path)
-        
+
         return cmd
-    
+
     def _parse_output(self, stdout: str) -> Dict[str, Any]:
         """Parse Bandit JSON output."""
         if not stdout.strip():
             return {"results": [], "metrics": {}}
-        
+
         try:
             return json.loads(stdout)
         except json.JSONDecodeError:
             return {"results": [], "metrics": {}, "parse_error": stdout}
-    
+
     def _convert_results(
-        self, 
+        self,
         raw_output: Dict[str, Any],
         target_path: str
     ) -> List[Vulnerability]:
         """Convert Bandit results to Vulnerability objects."""
         vulnerabilities = []
-        
+
         results = raw_output.get("results", [])
-        
+
         for idx, finding in enumerate(results):
             vuln = self._convert_finding(finding, idx)
             vulnerabilities.append(vuln)
-        
+
         return vulnerabilities
-    
+
     def _convert_finding(self, finding: Dict[str, Any], index: int) -> Vulnerability:
         """Convert a single Bandit finding to Vulnerability."""
         test_id = finding.get("test_id", "B000")
         severity_str = finding.get("issue_severity", "MEDIUM")
-        
+
         # Get CWE mapping
         cwe_id = get_cwe_from_bandit_test(test_id)
         owasp_id = None
-        
+
         # Get compliance mapping if CWE exists
         if cwe_id:
             compliance = get_compliance_mapping(cwe_id)
             if compliance:
                 owasp_id = compliance.owasp_category
-        
+
         # Build remediation advice
         remediation = self._get_remediation(test_id, finding)
-        
+
         return Vulnerability(
             id=f"BANDIT-{test_id}-{index:04d}",
             title=finding.get("issue_text", "Unknown Issue"),
@@ -299,7 +297,7 @@ class BanditScanner(BaseScanner):
                 "more_info": finding.get("more_info"),
             },
         )
-    
+
     def _get_remediation(self, test_id: str, finding: Dict[str, Any]) -> str:
         """Get remediation advice for a finding."""
         # Common remediation advice based on test ID
@@ -323,5 +321,5 @@ class BanditScanner(BaseScanner):
             "B602": "Avoid shell=True in subprocess. Use shell=False with list of arguments.",
             "B608": "Use parameterized queries to prevent SQL injection.",
         }
-        
+
         return remediations.get(test_id, finding.get("more_info", "Review and fix the security issue."))

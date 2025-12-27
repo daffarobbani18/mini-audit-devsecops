@@ -30,7 +30,7 @@ class BaseScanner(ABC):
                 # Implementation
                 pass
     """
-    
+
     def __init__(self, config: Optional[GateConfig] = None):
         """
         Initialize scanner with optional configuration.
@@ -39,7 +39,7 @@ class BaseScanner(ABC):
             config: GateConfig instance with scanner settings
         """
         self.config = config or GateConfig()
-    
+
     @property
     @abstractmethod
     def name(self) -> str:
@@ -50,7 +50,7 @@ class BaseScanner(ABC):
             String identifier for this scanner
         """
         pass
-    
+
     @property
     def version(self) -> str:
         """
@@ -62,7 +62,7 @@ class BaseScanner(ABC):
             Version string
         """
         return "unknown"
-    
+
     @abstractmethod
     def scan(self, target_path: str) -> ScanResult:
         """
@@ -75,7 +75,7 @@ class BaseScanner(ABC):
             ScanResult containing findings and metadata
         """
         pass
-    
+
     def is_available(self) -> bool:
         """
         Check if the scanner tool is available.
@@ -86,7 +86,7 @@ class BaseScanner(ABC):
             True if scanner can be used
         """
         return True
-    
+
     def get_config_summary(self) -> dict:
         """
         Return summary of current scanner configuration.

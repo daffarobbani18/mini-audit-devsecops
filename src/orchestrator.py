@@ -7,11 +7,10 @@ support for multiple scan modes and report generation.
 """
 
 import json
-from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from src.config import Config, load_config
+from src.config import load_config
 from src.gate.security_gate import SecurityGate
 from src.models.audit_result import AuditResult
 
@@ -28,9 +27,9 @@ class AuditOrchestrator:
         result = orchestrator.run_full_audit("./my_project")
         orchestrator.save_report(result)
     """
-    
+
     def __init__(
-        self, 
+        self,
         config_path: Optional[str] = None,
         output_dir: str = "reports"
     ):
@@ -45,9 +44,9 @@ class AuditOrchestrator:
         self.gate = SecurityGate(config=self.config)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
-    
+
     def run_full_audit(
-        self, 
+        self,
         target_path: str,
         audit_id: Optional[str] = None
     ) -> AuditResult:
@@ -62,9 +61,9 @@ class AuditOrchestrator:
             AuditResult with all findings
         """
         return self.gate.run_audit(target_path, audit_id)
-    
+
     def save_report(
-        self, 
+        self,
         result: AuditResult,
         formats: Optional[list] = None
     ) -> dict:
@@ -80,33 +79,33 @@ class AuditOrchestrator:
         """
         formats = formats or self.config.gate.report.formats
         saved_files = {}
-        
+
         timestamp = result.audit_timestamp.strftime("%Y%m%d_%H%M%S")
         base_name = f"audit_report_{timestamp}"
-        
+
         if "json" in formats:
             json_path = self.output_dir / f"{base_name}.json"
             self._save_json_report(result, json_path)
             saved_files["json"] = str(json_path)
-        
+
         if "html" in formats:
             html_path = self.output_dir / f"{base_name}.html"
             self._save_html_report(result, html_path)
             saved_files["html"] = str(html_path)
-        
+
         return saved_files
-    
+
     def _save_json_report(self, result: AuditResult, path: Path) -> None:
         """Save report as JSON."""
         with open(path, "w", encoding="utf-8") as f:
             json.dump(result.to_dict(), f, indent=2, default=str)
-    
+
     def _save_html_report(self, result: AuditResult, path: Path) -> None:
         """Save report as HTML."""
         html_content = self._generate_html_report(result)
         with open(path, "w", encoding="utf-8") as f:
             f.write(html_content)
-    
+
     def _generate_html_report(self, result: AuditResult) -> str:
         """Generate HTML report content."""
         # Simple HTML template
@@ -117,7 +116,7 @@ class AuditOrchestrator:
             "LOW": "#28a745",
             "INFO": "#17a2b8",
         }
-        
+
         vulnerabilities_html = ""
         for vuln in result.all_vulnerabilities:
             color = severity_colors.get(vuln.severity.value, "#6c757d")
@@ -130,9 +129,9 @@ class AuditOrchestrator:
                 <td>{vuln.cwe_id or 'N/A'}</td>
             </tr>
             """
-        
+
         gate_color = "#28a745" if result.passed else "#dc3545"
-        
+
         html = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -216,9 +215,9 @@ class AuditOrchestrator:
 </body>
 </html>
         """
-        
+
         return html
-    
+
     def print_summary(self, result: AuditResult) -> None:
         """Print audit summary to console."""
         print(result.print_summary())

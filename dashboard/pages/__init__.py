@@ -14,7 +14,7 @@ from . import settings
 
 __all__ = [
     'overview',
-    'report_viewer', 
+    'report_viewer',
     'live_scan',
     'trends',
     'compliance',
