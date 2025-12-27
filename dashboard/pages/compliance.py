@@ -96,9 +96,21 @@ def map_vulnerabilities_to_owasp(vulnerabilities: List[Dict]) -> Dict[str, List[
 def render():
     """Render the compliance page."""
 
-    st.title("🏛️ Compliance Mapping")
-    st.markdown("Map findings to security standards and frameworks")
-    st.markdown("---")
+    # Page header
+    st.markdown("""
+    <div style="
+        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        color: white;
+    ">
+        <h1 style="color: white; margin: 0; font-size: 1.75rem;">🏛️ Compliance Mapping</h1>
+        <p style="color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0; font-size: 1rem;">
+            Map findings to OWASP, CWE, and NIST security standards
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Load data
     reports_dir = st.session_state.get('reports_dir', Path(__file__).parent.parent.parent / "reports")

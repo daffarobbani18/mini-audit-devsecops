@@ -43,9 +43,21 @@ def load_report(file_path: Path) -> Optional[Dict]:
 def render():
     """Render the report viewer page."""
 
-    st.title("📋 Report Viewer")
-    st.markdown("Detailed vulnerability analysis and filtering")
-    st.markdown("---")
+    # Page header
+    st.markdown("""
+    <div style="
+        background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        color: white;
+    ">
+        <h1 style="color: white; margin: 0; font-size: 1.75rem;">📋 Report Viewer</h1>
+        <p style="color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0; font-size: 1rem;">
+            Detailed vulnerability analysis and filtering
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Sidebar filters
     with st.sidebar:

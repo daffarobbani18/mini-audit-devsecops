@@ -55,9 +55,21 @@ def load_all_reports(reports_dir: Path, limit: int = 10) -> List[Dict]:
 def render():
     """Render the overview page."""
 
-    st.title("📊 Security Overview")
-    st.markdown("Executive summary of your security posture")
-    st.markdown("---")
+    # Page header with gradient
+    st.markdown("""
+    <div style="
+        background: linear-gradient(135deg, #4F46E5 0%, #3730A3 100%);
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        color: white;
+    ">
+        <h1 style="color: white; margin: 0; font-size: 1.75rem;">📊 Security Overview</h1>
+        <p style="color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0; font-size: 1rem;">
+            Executive summary of your security posture
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Load latest report
     reports_dir = st.session_state.get('reports_dir', Path(__file__).parent.parent.parent / "reports")
@@ -164,10 +176,18 @@ def render_welcome():
     """Display welcome message when no reports available."""
 
     st.markdown("""
-    <div style="text-align: center; padding: 50px 0;">
-        <h1 style="color: #667eea;">👋 Welcome!</h1>
-        <p style="font-size: 18px; color: #6c757d;">
-            No audit reports found. Let's run your first security scan!
+    <div style="
+        text-align: center;
+        padding: 3rem 2rem;
+        background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+        border-radius: 16px;
+        border: 2px dashed #CBD5E1;
+        margin: 2rem 0;
+    ">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">👋</div>
+        <h2 style="color: #1E293B; margin: 0 0 0.5rem 0;">Welcome to DevSecOps Gate!</h2>
+        <p style="color: #64748B; font-size: 1.1rem; margin: 0;">
+            No audit reports found yet. Let's run your first security scan!
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -177,9 +197,9 @@ def render_welcome():
     with col2:
         st.markdown("""
         ### 🚀 Getting Started
-        
+
         **Option 1: Run from Dashboard**
-        
+
         Click the button below to run a security scan directly from the dashboard.
         """)
 
@@ -189,17 +209,17 @@ def render_welcome():
 
         st.markdown("""
         ---
-        
+
         **Option 2: Run from Command Line**
-        
+
         ```bash
         python scripts/run_audit.py ./your_project
         ```
-        
+
         ---
-        
+
         **Option 3: CI/CD Integration**
-        
+
         Push your code to GitHub and let the automated pipeline run the scan!
         """)
 

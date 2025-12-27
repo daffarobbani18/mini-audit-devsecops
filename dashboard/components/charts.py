@@ -11,28 +11,48 @@ from plotly.subplots import make_subplots
 import pandas as pd
 from typing import Dict, List
 
+# Import theme colors
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# Color schemes
-SEVERITY_COLORS = {
-    'CRITICAL': '#dc3545',
-    'HIGH': '#fd7e14',
-    'MEDIUM': '#ffc107',
-    'LOW': '#28a745',
-    'INFO': '#17a2b8',
-}
+try:
+    from styles.theme import SEVERITY_COLORS, GATE_COLORS, COLORS
+except ImportError:
+    # Fallback colors
+    SEVERITY_COLORS = {
+        'CRITICAL': '#DC2626',
+        'HIGH': '#EA580C',
+        'MEDIUM': '#D97706',
+        'LOW': '#16A34A',
+        'INFO': '#0284C7',
+    }
+    GATE_COLORS = {
+        'PASSED': '#16A34A',
+        'WARNING': '#D97706',
+        'FAILED': '#DC2626',
+        'ERROR': '#64748B',
+    }
+    COLORS = {
+        'primary': '#4F46E5',
+        'secondary': '#0EA5E9',
+        'bg_secondary': '#F8FAFC',
+        'text_primary': '#1E293B',
+        'text_secondary': '#64748B',
+    }
 
-GATE_COLORS = {
-    'PASSED': '#28a745',
-    'WARNING': '#ffc107',
-    'FAILED': '#dc3545',
-    'ERROR': '#6c757d',
+# Chart layout defaults
+CHART_LAYOUT = {
+    'font': {'family': 'Inter, sans-serif', 'color': '#1E293B'},
+    'paper_bgcolor': 'rgba(0,0,0,0)',
+    'plot_bgcolor': 'rgba(0,0,0,0)',
 }
 
 
 def render_severity_pie_chart(
     findings: Dict[str, int],
     title: str = "Vulnerability Distribution",
-    height: int = 300
+    height: int = 320
 ) -> None:
     """
     Render a pie chart showing severity distribution.
@@ -61,19 +81,32 @@ def render_severity_pie_chart(
     fig = go.Figure(data=[go.Pie(
         labels=labels,
         values=values,
-        hole=0.4,
+        hole=0.45,
         marker_colors=colors,
         textinfo='label+value',
         textposition='outside',
+        textfont={'size': 12, 'family': 'Inter, sans-serif'},
         hovertemplate='<b>%{label}</b><br>Count: %{value}<br>Percentage: %{percent}<extra></extra>'
     )])
 
     fig.update_layout(
-        title=dict(text=title, x=0.5, font=dict(size=16)),
+        title=dict(
+            text=f"<b>{title}</b>",
+            x=0.5,
+            font=dict(size=14, family='Inter, sans-serif', color='#1E293B')
+        ),
         height=height,
         showlegend=True,
-        legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5),
-        margin=dict(t=50, b=50, l=20, r=20),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.15,
+            xanchor="center",
+            x=0.5,
+            font=dict(size=11, family='Inter, sans-serif')
+        ),
+        margin=dict(t=60, b=60, l=20, r=20),
+        **CHART_LAYOUT
     )
 
     st.plotly_chart(fig, use_container_width=True)

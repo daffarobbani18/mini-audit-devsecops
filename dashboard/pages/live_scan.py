@@ -87,9 +87,21 @@ def run_audit(target_path: str, output_dir: str) -> dict:
 def render():
     """Render the live scan page."""
 
-    st.title("🔍 Live Security Scan")
-    st.markdown("Run security scans directly from the dashboard")
-    st.markdown("---")
+    # Page header
+    st.markdown("""
+    <div style="
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        color: white;
+    ">
+        <h1 style="color: white; margin: 0; font-size: 1.75rem;">🔍 Live Security Scan</h1>
+        <p style="color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0; font-size: 1rem;">
+            Run security scans directly from the dashboard
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Initialize session state
     if 'scan_running' not in st.session_state:

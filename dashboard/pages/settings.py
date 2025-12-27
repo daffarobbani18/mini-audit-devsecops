@@ -41,9 +41,21 @@ def save_config(config_path: Path, config: Dict[str, Any]) -> bool:
 def render():
     """Render the settings page."""
 
-    st.title("⚙️ Settings")
-    st.markdown("Configure the DevSecOps Security Gate")
-    st.markdown("---")
+    # Page header
+    st.markdown("""
+    <div style="
+        background: linear-gradient(135deg, #64748B 0%, #475569 100%);
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        color: white;
+    ">
+        <h1 style="color: white; margin: 0; font-size: 1.75rem;">⚙️ Settings</h1>
+        <p style="color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0; font-size: 1rem;">
+            Configure the DevSecOps Security Gate
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     project_root = Path(__file__).parent.parent.parent
     config_path = project_root / "gate_config.yaml"

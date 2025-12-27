@@ -115,7 +115,7 @@ def render_kpi_cards(
 ) -> None:
     """
     Render KPI cards for executive summary.
-    
+
     Args:
         findings: Dict with severity counts
         total_score: Total risk score
@@ -125,47 +125,85 @@ def render_kpi_cards(
 
     with col1:
         critical = findings.get('critical', 0)
+        bg_color = 'rgba(220, 38, 38, 0.1)' if critical > 0 else 'rgba(22, 163, 74, 0.1)'
+        text_color = '#DC2626' if critical > 0 else '#16A34A'
+        border_color = 'rgba(220, 38, 38, 0.3)' if critical > 0 else 'rgba(22, 163, 74, 0.3)'
         st.markdown(f"""
-        <div style="text-align: center; padding: 15px; background: {'#f8d7da' if critical > 0 else '#d4edda'}; border-radius: 8px;">
-            <h3 style="margin: 0; color: {'#721c24' if critical > 0 else '#155724'};">🔴 {critical}</h3>
-            <p style="margin: 5px 0 0 0; font-size: 12px; color: #6c757d;">Critical</p>
+        <div style="
+            text-align: center;
+            padding: 1.25rem 1rem;
+            background: {bg_color};
+            border: 1px solid {border_color};
+            border-radius: 12px;
+            transition: transform 0.2s ease;
+        ">
+            <div style="font-size: 2rem; font-weight: 700; color: {text_color};">{critical}</div>
+            <div style="font-size: 0.75rem; font-weight: 500; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em;">Critical</div>
         </div>
         """, unsafe_allow_html=True)
 
     with col2:
         high = findings.get('high', 0)
+        bg_color = 'rgba(234, 88, 12, 0.1)' if high > 0 else 'rgba(22, 163, 74, 0.1)'
+        text_color = '#EA580C' if high > 0 else '#16A34A'
+        border_color = 'rgba(234, 88, 12, 0.3)' if high > 0 else 'rgba(22, 163, 74, 0.3)'
         st.markdown(f"""
-        <div style="text-align: center; padding: 15px; background: {'#fff3cd' if high > 0 else '#d4edda'}; border-radius: 8px;">
-            <h3 style="margin: 0; color: {'#856404' if high > 0 else '#155724'};">🟠 {high}</h3>
-            <p style="margin: 5px 0 0 0; font-size: 12px; color: #6c757d;">High</p>
+        <div style="
+            text-align: center;
+            padding: 1.25rem 1rem;
+            background: {bg_color};
+            border: 1px solid {border_color};
+            border-radius: 12px;
+        ">
+            <div style="font-size: 2rem; font-weight: 700; color: {text_color};">{high}</div>
+            <div style="font-size: 0.75rem; font-weight: 500; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em;">High</div>
         </div>
         """, unsafe_allow_html=True)
 
     with col3:
         medium = findings.get('medium', 0)
         st.markdown(f"""
-        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-            <h3 style="margin: 0; color: #856404;">🟡 {medium}</h3>
-            <p style="margin: 5px 0 0 0; font-size: 12px; color: #6c757d;">Medium</p>
+        <div style="
+            text-align: center;
+            padding: 1.25rem 1rem;
+            background: rgba(217, 119, 6, 0.1);
+            border: 1px solid rgba(217, 119, 6, 0.3);
+            border-radius: 12px;
+        ">
+            <div style="font-size: 2rem; font-weight: 700; color: #D97706;">{medium}</div>
+            <div style="font-size: 0.75rem; font-weight: 500; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em;">Medium</div>
         </div>
         """, unsafe_allow_html=True)
 
     with col4:
         low = findings.get('low', 0)
         st.markdown(f"""
-        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-            <h3 style="margin: 0; color: #28a745;">🟢 {low}</h3>
-            <p style="margin: 5px 0 0 0; font-size: 12px; color: #6c757d;">Low</p>
+        <div style="
+            text-align: center;
+            padding: 1.25rem 1rem;
+            background: rgba(22, 163, 74, 0.1);
+            border: 1px solid rgba(22, 163, 74, 0.3);
+            border-radius: 12px;
+        ">
+            <div style="font-size: 2rem; font-weight: 700; color: #16A34A;">{low}</div>
+            <div style="font-size: 0.75rem; font-weight: 500; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em;">Low</div>
         </div>
         """, unsafe_allow_html=True)
 
     with col5:
-        score_color = '#721c24' if total_score > threshold else '#155724'
-        score_bg = '#f8d7da' if total_score > threshold else '#d4edda'
+        score_color = '#DC2626' if total_score > threshold else '#16A34A'
+        bg_color = 'rgba(220, 38, 38, 0.1)' if total_score > threshold else 'rgba(22, 163, 74, 0.1)'
+        border_color = 'rgba(220, 38, 38, 0.3)' if total_score > threshold else 'rgba(22, 163, 74, 0.3)'
         st.markdown(f"""
-        <div style="text-align: center; padding: 15px; background: {score_bg}; border-radius: 8px;">
-            <h3 style="margin: 0; color: {score_color};">📊 {total_score}</h3>
-            <p style="margin: 5px 0 0 0; font-size: 12px; color: #6c757d;">Risk Score</p>
+        <div style="
+            text-align: center;
+            padding: 1.25rem 1rem;
+            background: {bg_color};
+            border: 1px solid {border_color};
+            border-radius: 12px;
+        ">
+            <div style="font-size: 2rem; font-weight: 700; color: {score_color};">{total_score}</div>
+            <div style="font-size: 0.75rem; font-weight: 500; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em;">Risk Score</div>
         </div>
         """, unsafe_allow_html=True)
 

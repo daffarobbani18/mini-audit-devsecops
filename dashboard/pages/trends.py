@@ -85,9 +85,21 @@ def prepare_trend_data(reports: List[Dict]) -> pd.DataFrame:
 def render():
     """Render the trends page."""
 
-    st.title("📈 Security Trends")
-    st.markdown("Track your security posture over time")
-    st.markdown("---")
+    # Page header
+    st.markdown("""
+    <div style="
+        background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        color: white;
+    ">
+        <h1 style="color: white; margin: 0; font-size: 1.75rem;">📈 Security Trends</h1>
+        <p style="color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0; font-size: 1rem;">
+            Historical analysis of your security posture over time
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Load reports
     reports_dir = st.session_state.get('reports_dir', Path(__file__).parent.parent.parent / "reports")

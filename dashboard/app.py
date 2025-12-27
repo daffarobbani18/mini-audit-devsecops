@@ -7,7 +7,7 @@ security audit results, track trends, and run live scans.
 
 Run with:
     streamlit run dashboard/app.py
-    
+
 Or with custom config:
     streamlit run dashboard/app.py -- --reports-dir ./reports
 """
@@ -17,7 +17,7 @@ from pathlib import Path
 
 # Page configuration - MUST be first Streamlit command
 st.set_page_config(
-    page_title="DevSecOps Audit Dashboard",
+    page_title="DevSecOps Security Dashboard",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -25,16 +25,17 @@ st.set_page_config(
         'Get Help': 'https://github.com/your-repo/mini-audit-devsecops',
         'Report a bug': 'https://github.com/your-repo/mini-audit-devsecops/issues',
         'About': '''
-        ## 🛡️ DevSecOps Security Gate Dashboard
-        
-        **Mini Audit Tools 2025**
-        
-        Automated security audit visualization for IT Auditors.
-        
-        Features:
-        - SAST Analysis (Bandit)
-        - SCA Dependency Scanning (Safety)
-        - OWASP/CWE/NIST Compliance Mapping
+## 🛡️ DevSecOps Security Gate
+
+**Mini Audit Tools 2025** | Capstone IT Audit
+
+Automated security audit visualization for IT Auditors.
+
+**Features:**
+- 🔍 SAST Analysis (Bandit)
+- 📦 SCA Dependency Scanning (Safety)
+- 🏛️ OWASP/CWE/NIST Compliance Mapping
+- 📊 Real-time Dashboard & Trends
         '''
     }
 )
@@ -50,151 +51,102 @@ if 'selected_report' not in st.session_state:
 # Import pages
 from pages import overview, report_viewer, live_scan, trends, compliance, settings
 
-# Custom CSS
-st.markdown("""
-<style>
-    /* Main container */
-    .main .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-    }
-    
-    /* Metric cards */
-    [data-testid="metric-container"] {
-        background-color: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        padding: 15px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-    
-    /* Status banners */
-    .status-passed {
-        background-color: #d4edda;
-        border: 1px solid #c3e6cb;
-        border-radius: 8px;
-        padding: 15px;
-        color: #155724;
-    }
-    
-    .status-failed {
-        background-color: #f8d7da;
-        border: 1px solid #f5c6cb;
-        border-radius: 8px;
-        padding: 15px;
-        color: #721c24;
-    }
-    
-    .status-warning {
-        background-color: #fff3cd;
-        border: 1px solid #ffeeba;
-        border-radius: 8px;
-        padding: 15px;
-        color: #856404;
-    }
-    
-    /* Severity colors */
-    .severity-critical { color: #dc3545; font-weight: bold; }
-    .severity-high { color: #fd7e14; font-weight: bold; }
-    .severity-medium { color: #ffc107; font-weight: bold; }
-    .severity-low { color: #28a745; font-weight: bold; }
-    
-    /* Sidebar styling */
-    [data-testid="stSidebar"] {
-        background-color: #f8f9fa;
-    }
-    
-    /* Navigation buttons */
-    .nav-button {
-        width: 100%;
-        margin-bottom: 5px;
-    }
-    
-    /* Tables */
-    .dataframe {
-        font-size: 14px;
-    }
-    
-    /* Headers */
-    h1, h2, h3 {
-        color: #2c3e50;
-    }
-    
-    /* Cards */
-    .info-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 10px;
-        padding: 20px;
-        color: white;
-        margin-bottom: 10px;
-    }
-    
-    /* Footer */
-    .footer {
-        position: fixed;
-        bottom: 0;
-        width: 100%;
-        background-color: #f8f9fa;
-        padding: 10px;
-        text-align: center;
-        font-size: 12px;
-        color: #6c757d;
-    }
-</style>
-""", unsafe_allow_html=True)
+# Import and apply custom theme
+from styles.theme import get_custom_css, COLORS
+st.markdown(get_custom_css(), unsafe_allow_html=True)
 
 
 def render_sidebar():
-    """Render the sidebar navigation."""
+    """Render the sidebar navigation with modern design."""
     with st.sidebar:
-        # Logo and title
-        st.markdown("""
-        <div style="text-align: center; padding: 20px 0;">
-            <h1 style="color: #2c3e50; margin: 0;">🛡️</h1>
-            <h3 style="color: #2c3e50; margin: 5px 0;">DevSecOps Gate</h3>
-            <p style="color: #6c757d; font-size: 12px;">Security Audit Dashboard</p>
+        # Logo and title with gradient background
+        st.markdown(f"""
+        <div style="
+            text-align: center;
+            padding: 1.5rem 1rem;
+            margin: -1rem -1rem 1rem -1rem;
+            background: linear-gradient(135deg, {COLORS['primary']} 0%, {COLORS['primary_dark']} 100%);
+            border-radius: 0 0 16px 16px;
+        ">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🛡️</div>
+            <h2 style="color: white; margin: 0; font-size: 1.25rem; font-weight: 600;">DevSecOps Gate</h2>
+            <p style="color: rgba(255,255,255,0.8); font-size: 0.75rem; margin: 0.25rem 0 0 0;">Security Audit Dashboard</p>
         </div>
         """, unsafe_allow_html=True)
 
-        st.markdown("---")
+        st.markdown("")
 
-        # Navigation
-        st.markdown("### 📍 Navigation")
+        # Navigation section
+        st.markdown(f"""
+        <p style="
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: {COLORS['text_muted']};
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        ">Navigation</p>
+        """, unsafe_allow_html=True)
 
         pages = {
-            'overview': ('📊 Overview', 'Executive summary and metrics'),
-            'report_viewer': ('📋 Report Viewer', 'Detailed vulnerability analysis'),
-            'live_scan': ('🔍 Live Scan', 'Run security scans'),
-            'trends': ('📈 Trends', 'Historical analysis'),
-            'compliance': ('🏛️ Compliance', 'OWASP/CWE/NIST mapping'),
-            'settings': ('⚙️ Settings', 'Configuration'),
+            'overview': ('📊', 'Overview', 'Executive summary and metrics'),
+            'report_viewer': ('📋', 'Report Viewer', 'Detailed vulnerability analysis'),
+            'live_scan': ('🔍', 'Live Scan', 'Run security scans'),
+            'trends': ('📈', 'Trends', 'Historical analysis'),
+            'compliance': ('🏛️', 'Compliance', 'OWASP/CWE/NIST mapping'),
+            'settings': ('⚙️', 'Settings', 'Configuration'),
         }
 
-        for page_key, (page_name, page_desc) in pages.items():
+        for page_key, (icon, page_name, page_desc) in pages.items():
+            is_active = st.session_state.current_page == page_key
             if st.button(
-                page_name,
+                f"{icon}  {page_name}",
                 key=f"nav_{page_key}",
                 use_container_width=True,
-                type="primary" if st.session_state.current_page == page_key else "secondary",
+                type="primary" if is_active else "secondary",
                 help=page_desc
             ):
                 st.session_state.current_page = page_key
                 st.rerun()
 
+        st.markdown("")
         st.markdown("---")
 
-        # Quick stats
-        st.markdown("### 📊 Quick Stats")
+        # Quick stats section
+        st.markdown(f"""
+        <p style="
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: {COLORS['text_muted']};
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        ">Quick Stats</p>
+        """, unsafe_allow_html=True)
+
         reports_count = len(list(st.session_state.reports_dir.glob("audit_report_*.json"))) if st.session_state.reports_dir.exists() else 0
-        st.metric("Total Reports", reports_count)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Reports", reports_count)
+        with col2:
+            st.metric("Scanners", "2")
 
         st.markdown("---")
 
-        # Info
-        st.markdown("""
-        <div style="text-align: center; font-size: 11px; color: #6c757d;">
-            <p>Mini Audit Tools 2025</p>
-            <p>v1.0.0 | Capstone IT Audit</p>
+        # Footer info
+        st.markdown(f"""
+        <div style="
+            text-align: center;
+            padding: 1rem 0;
+            border-top: 1px solid {COLORS['border_light']};
+        ">
+            <p style="font-size: 0.7rem; color: {COLORS['text_muted']}; margin: 0;">
+                <strong>Mini Audit Tools 2025</strong>
+            </p>
+            <p style="font-size: 0.65rem; color: {COLORS['text_muted']}; margin: 0.25rem 0 0 0;">
+                v1.0.0 • Capstone IT Audit
+            </p>
         </div>
         """, unsafe_allow_html=True)
 
