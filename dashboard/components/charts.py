@@ -62,16 +62,26 @@ def render_severity_pie_chart(
         title: Chart title
         height: Chart height in pixels
     """
-    # Prepare data
-    labels = ['Critical', 'High', 'Medium', 'Low']
-    values = [
+    # Prepare data - only include non-zero values to avoid clutter
+    all_labels = ['Critical', 'High', 'Medium', 'Low']
+    all_values = [
         findings.get('critical', 0),
         findings.get('high', 0),
         findings.get('medium', 0),
         findings.get('low', 0),
     ]
-    colors = [SEVERITY_COLORS['CRITICAL'], SEVERITY_COLORS['HIGH'],
-              SEVERITY_COLORS['MEDIUM'], SEVERITY_COLORS['LOW']]
+    all_colors = [SEVERITY_COLORS['CRITICAL'], SEVERITY_COLORS['HIGH'],
+                  SEVERITY_COLORS['MEDIUM'], SEVERITY_COLORS['LOW']]
+
+    # Filter out zero values to make chart cleaner
+    labels = []
+    values = []
+    colors = []
+    for i, v in enumerate(all_values):
+        if v > 0:
+            labels.append(all_labels[i])
+            values.append(v)
+            colors.append(all_colors[i])
 
     # Skip if all zeros
     if sum(values) == 0:
@@ -81,32 +91,47 @@ def render_severity_pie_chart(
     fig = go.Figure(data=[go.Pie(
         labels=labels,
         values=values,
-        hole=0.45,
-        marker_colors=colors,
-        textinfo='label+value',
-        textposition='outside',
-        textfont={'size': 12, 'family': 'Inter, sans-serif'},
-        hovertemplate='<b>%{label}</b><br>Count: %{value}<br>Percentage: %{percent}<extra></extra>'
+        hole=0.5,
+        marker=dict(
+            colors=colors,
+            line=dict(color='#FFFFFF', width=2)
+        ),
+        textinfo='percent',
+        textposition='inside',
+        textfont=dict(size=14, color='white', family='Inter, sans-serif'),
+        hovertemplate='<b>%{label}</b><br>Count: %{value}<br>Percentage: %{percent}<extra></extra>',
+        pull=[0.02] * len(values),  # Slight separation between slices
     )])
 
     fig.update_layout(
         title=dict(
             text=f"<b>{title}</b>",
             x=0.5,
+            y=0.95,
             font=dict(size=14, family='Inter, sans-serif', color='#1E293B')
         ),
         height=height,
         showlegend=True,
         legend=dict(
             orientation="h",
-            yanchor="bottom",
-            y=-0.15,
+            yanchor="top",
+            y=-0.05,
             xanchor="center",
             x=0.5,
-            font=dict(size=11, family='Inter, sans-serif')
+            font=dict(size=12, family='Inter, sans-serif'),
+            itemsizing='constant',
         ),
-        margin=dict(t=60, b=60, l=20, r=20),
+        margin=dict(t=50, b=80, l=30, r=30),
         **CHART_LAYOUT
+    )
+
+    # Add center annotation showing total
+    total = sum(values)
+    fig.add_annotation(
+        text=f"<b>{total}</b><br><span style='font-size:11px'>Total</span>",
+        x=0.5, y=0.5,
+        font=dict(size=20, family='Inter, sans-serif', color='#1E293B'),
+        showarrow=False
     )
 
     st.plotly_chart(fig, use_container_width=True)
