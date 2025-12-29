@@ -104,7 +104,7 @@ jobs:
           
       - name: 🚨 Create Issue for Critical Findings
         if: steps.audit.outputs.critical_count > 0 || steps.audit.outputs.high_count > 2
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const critical = '${{ steps.audit.outputs.critical_count }}';
